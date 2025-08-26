@@ -7,19 +7,22 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/context/SidebarContext'; // Importar nosso Hook
-// ... (outros imports de ícones)
 import HomeIcon from '@mui/icons-material/Home';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import SpeedIcon from '@mui/icons-material/Speed'; // Ícone para pressão barométrica
+// Adicionar o import do ícone
+import PhishingIcon from '@mui/icons-material/Phishing';
 
 const drawerWidth = 240;
 
+// Atualizar o array menuItems
 const menuItems = [
     { text: 'Início', icon: <HomeIcon />, path: '/' },
     { text: 'Satelite', icon: <SatelliteAltIcon />, path: '/mapa' },
     { text: 'Clima', icon: <WbSunnyIcon />, path: '/clima' },
     { text: 'Pressão Barométrica', icon: <SpeedIcon />, path: '/pressao' },
+    { text: 'Atividade de Peixes', icon: <PhishingIcon />, path: '/atividade-peixes' },
 ];
 
 export default function Sidebar() {

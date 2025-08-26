@@ -12,7 +12,7 @@ export default function PressaoBarometricaPage() {
   const [pressaoData, setPressaoData] = useState({
     pressao: null,
     tendencia: null,
-    local: 'Localização atual',
+    local: 'Obtendo localização...',
     loading: true,
     error: null,
     latitude: null,
@@ -66,187 +66,177 @@ export default function PressaoBarometricaPage() {
           obtendo: false,
           erro: `Erro ao obter localização: ${error.message}`
         });
+        // Em caso de erro, usar localização padrão (Curitiba)
+        const latitudePadrao = -25.428;
+        const longitudePadrao = -49.273;
+        buscarDadosPressao(latitudePadrao, longitudePadrao);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
   
+  // Adicione esta função DENTRO do componente, antes da função buscarDadosPressao
+  const determinarTendencia = (pressao: number): string => {
+    if (pressao < 1000) return 'descendo';
+    if (pressao > 1020) return 'subindo';
+    return 'estável';
+  };
+  
   // Função para buscar dados de pressão barométrica com base na localização
-  const buscarDadosPressao = (latitude, longitude) => {
+  const buscarDadosPressao = async (latitude: number, longitude: number) => {
     setPressaoData(prev => ({ ...prev, loading: true, error: null }));
     
-    // Em uma aplicação real, você usaria uma API de clima como OpenWeatherMap, WeatherAPI, etc.
-    // Aqui estamos simulando uma chamada à API
-    setTimeout(() => {
-      // Simulação de pressão aleatória entre 990 e 1030 hPa
-      const pressaoAleatoria = Math.floor(Math.random() * (1030 - 990 + 1)) + 990;
-      const tendencias = ['subindo', 'descendo', 'estável'];
-      const tendenciaAleatoria = tendencias[Math.floor(Math.random() * tendencias.length)];
+    try {
+      const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+      
+      if (!API_KEY) {
+        throw new Error('Chave da API não configurada');
+      }
+      
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric&lang=pt_br`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`);
+      }
+      
+      const data = await response.json();
       
       setPressaoData({
-        pressao: pressaoAleatoria,
-        tendencia: tendenciaAleatoria,
-        local: `Sua localização (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+        pressao: data.main.pressure,
+        tendencia: determinarTendencia(data.main.pressure), // Agora funcionará
+        local: `${data.name}, ${data.sys.country}`,
         loading: false,
         error: null,
         latitude,
         longitude
       });
-    }, 1500);
-    
-    // Implementação real com API (exemplo com OpenWeatherMap)
-    // const API_KEY = 'SUA_API_KEY'; // Você precisaria de uma chave de API válida
-    // fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric`)
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     setPressaoData({
-    //       pressao: data.main.pressure,
-    //       tendencia: determinarTendencia(data.main.pressure),
-    //       local: `${data.name}, ${data.sys.country}`,
-    //       loading: false,
-    //       error: null,
-    //       latitude,
-    //       longitude
-    //     });
-    //   })
-    //   .catch(error => {
-    //     setPressaoData(prev => ({ ...prev, loading: false, error: error.message }));
-    //   });
+    } catch (error) {
+      console.error('Erro ao buscar dados de pressão:', error);
+      setPressaoData(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: `Erro ao carregar dados: ${error.message}`,
+        local: `Localização (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+      }));
+    }
   };
   
   useEffect(() => {
-    // Carrega dados iniciais com uma localização padrão (Curitiba)
-    const latitudePadrao = -25.428;
-    const longitudePadrao = -49.273;
-    
-    buscarDadosPressao(latitudePadrao, longitudePadrao);
+    // Solicita localização automaticamente ao carregar a página
+    obterLocalizacao();
   }, []);
 
   // Função para determinar a cor baseada na pressão
-  const getPressaoColor = (pressao) => {
+  // Dentro do componente, melhore a tipagem:
+  const getPressaoColor = (pressao: number | null): string => {
     if (!pressao) return '#888';
-    if (pressao < 1000) return '#d32f2f'; // Baixa pressão - vermelho
-    if (pressao > 1020) return '#2e7d32'; // Alta pressão - verde
-    return '#1976d2'; // Pressão normal - azul
+    if (pressao < 1000) return '#d32f2f';
+    if (pressao > 1020) return '#2e7d32';
+    return '#1976d2';
   };
-
-  // Função para obter descrição da pressão
-  const getPressaoDescricao = (pressao) => {
+  
+  const getPressaoDescricao = (pressao: number | null): string => {
     if (!pressao) return 'Desconhecida';
     if (pressao < 1000) return 'Baixa - Possibilidade de chuva ou tempestade';
     if (pressao > 1020) return 'Alta - Geralmente indica tempo estável e seco';
     return 'Normal - Condições atmosféricas estáveis';
   };
   
-  // Função para avaliar a qualidade da pressão para pesca
-  const getQualidadePesca = (pressao) => {
+  const getQualidadePesca = (pressao: number | null): { texto: string; valor: number } => {
     if (!pressao) return { texto: 'Desconhecida', valor: 50 };
     
-    // Valores de referência para pesca
-    // 990-1000: Ruim (tempestades)
-    // 1000-1009: Moderada a Boa (peixes mais ativos antes de tempestades)
-    // 1009-1015: Excelente (pressão estável, condições ideais)
-    // 1015-1022: Boa (tempo estável)
-    // 1022-1030: Moderada (muito estável, peixes menos ativos)
-    
-    if (pressao < 995) return { texto: 'Ruim - Tempestades prováveis', valor: 10 };
-    if (pressao < 1000) return { texto: 'Fraca - Condições instáveis', valor: 30 };
-    if (pressao < 1005) return { texto: 'Moderada - Peixes mais ativos antes de mudanças', valor: 60 };
-    if (pressao < 1010) return { texto: 'Boa - Condições favoráveis', valor: 80 };
-    if (pressao < 1015) return { texto: 'Excelente - Condições ideais', valor: 100 };
-    if (pressao < 1020) return { texto: 'Muito Boa - Tempo estável', valor: 90 };
-    if (pressao < 1025) return { texto: 'Boa - Estabilidade atmosférica', valor: 70 };
-    return { texto: 'Moderada - Muito estável, peixes menos ativos', valor: 50 };
+    if (pressao < 1000) {
+      return { texto: 'Ruim', valor: 20 };
+    } else if (pressao >= 1000 && pressao < 1009) {
+      return { texto: 'Boa', valor: 75 };
+    } else if (pressao >= 1009 && pressao <= 1015) {
+      return { texto: 'Excelente', valor: 100 };
+    } else if (pressao > 1015 && pressao <= 1022) {
+      return { texto: 'Boa', valor: 80 };
+    } else {
+      return { texto: 'Moderada', valor: 60 };
+    }
   };
   
-  // Função para obter a cor da escala de qualidade
-  const getQualidadeColor = (valor) => {
-    if (valor < 30) return '#d32f2f'; // Ruim - vermelho
-    if (valor < 60) return '#ff9800'; // Moderada - laranja
-    if (valor < 80) return '#ffeb3b'; // Boa - amarelo
-    if (valor < 90) return '#4caf50'; // Muito boa - verde
-    return '#2e7d32'; // Excelente - verde escuro
+  // Função para obter cor baseada na qualidade
+  const getQualidadeColor = (valor: number): string => {
+    if (valor >= 90) return '#4caf50'; // Verde - Excelente
+    if (valor >= 70) return '#8bc34a'; // Verde claro - Boa
+    if (valor >= 50) return '#ff9800'; // Laranja - Moderada
+    if (valor >= 30) return '#ff5722'; // Laranja escuro - Fraca
+    return '#f44336'; // Vermelho - Ruim
   };
 
   return (
     <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100%', 
-      width: '100%',
-      padding: 3,
-      backgroundColor: '#e0f7fa',
-      backgroundImage: 'linear-gradient(to bottom, #bbdefb, #e3f2fd)',
-      minHeight: '100vh',
-      position: 'relative' // Adicionado para posicionamento absoluto do botão
+      minHeight: '100vh', 
+      backgroundColor: '#f5f5f5', 
+      py: 4,
+      px: 2
     }}>
-      {/* Título centralizado com container próprio */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        width: '100%', 
-        mb: 3,
-        position: 'relative'
-      }}>
-        <Typography variant="h4" component="h1" sx={{ 
-          color: '#003366', 
-          fontWeight: 'bold',
-          textAlign: 'center',
-          textShadow: '1px 1px 2px rgba(255,255,255,0.7)'
-        }}>
-          Pressão Barométrica
-        </Typography>
-      </Box>
-      
-      {localizacaoStatus.erro && (
-        <Paper elevation={1} sx={{ p: 2, mb: 2, backgroundColor: '#ffebee' }}>
-          <Typography color="error">{localizacaoStatus.erro}</Typography>
-        </Paper>
-      )}
-      
-      <Typography variant="subtitle1" gutterBottom align="center">
-        {pressaoData.local}
+      <Typography 
+        variant="h3" 
+        component="h1" 
+        gutterBottom 
+        align="center" 
+        sx={{ 
+          fontWeight: 'bold', 
+          color: '#1976d2',
+          mb: 4
+        }}
+      >
+        Pressão Barométrica
       </Typography>
       
-      {/* Botão de localização posicionado no canto inferior direito */}
-      <Box sx={{ 
-        position: 'fixed', 
-        bottom: 20, 
-        right: 20, 
-        zIndex: 10 
-      }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<MyLocationIcon />}
+      {/* Localização e botão de atualizar */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ mr: 2 }}>
+          📍 {pressaoData.local}
+        </Typography>
+        <IconButton 
           onClick={obterLocalizacao}
           disabled={localizacaoStatus.obtendo}
+          size="small"
           sx={{ 
-            backgroundColor: '#4a754a', 
-            '&:hover': { backgroundColor: '#3e623e'},
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+            backgroundColor: 'rgba(25,118,210,0.1)',
+            '&:hover': { backgroundColor: 'rgba(25,118,210,0.2)' }
           }}
         >
-          {localizacaoStatus.obtendo ? 'Obtendo localização...' : 'Usar minha localização'}
-        </Button>
+          <MyLocationIcon />
+        </IconButton>
       </Box>
-
+      
+      {/* Erro de localização */}
+      {localizacaoStatus.erro && (
+        <Typography variant="body2" color="error" sx={{ mb: 2, textAlign: 'center' }}>
+          {localizacaoStatus.erro}
+        </Typography>
+      )}
+      
+      {/* Erro de dados */}
+      {pressaoData.error && (
+        <Typography variant="body2" color="error" sx={{ mb: 2, textAlign: 'center' }}>
+          {pressaoData.error}
+        </Typography>
+      )}
+      
       {pressaoData.loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <Box sx={{ width: '50%' }}>
-            <Typography align="center" gutterBottom>Carregando dados de pressão...</Typography>
-            <LinearProgress color="primary" />
-          </Box>
-        </Box>
-      ) : pressaoData.error ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <Typography color="error">Erro ao carregar dados: {pressaoData.error}</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+          <LinearProgress sx={{ width: '300px', mb: 2 }} />
+          <Typography>Carregando dados de pressão...</Typography>
+          {localizacaoStatus.obtendo && (
+            <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
+              Obtendo sua localização...
+            </Typography>
+          )}
         </Box>
       ) : (
-        <Grid container spacing={3} sx={{ mt: 2, display: 'flex', justifyContent: 'center', width: '100%' }}>
-          <Grid item xs={12} md={8} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <Paper elevation={3} sx={{ 
-              p: 3, 
+        <Grid container spacing={3} justifyContent="center">
+          <Grid item xs={12} md={8}>
+            <Paper sx={{
+              p: 4,
               width: '100%',
               maxWidth: '800px',
               display: 'flex', 
@@ -256,7 +246,8 @@ export default function PressaoBarometricaPage() {
               backgroundColor: '#e3f2fd',
               backgroundImage: 'linear-gradient(to bottom, #bbdefb, #e3f2fd)',
               borderRadius: 2,
-              boxShadow: '0 4px 20px rgba(0, 105, 192, 0.15)'
+              boxShadow: '0 4px 20px rgba(0, 105, 192, 0.15)',
+              margin: '0 auto'
             }}>
               <Typography variant="h6" gutterBottom align="center" sx={{ width: '100%' }}>Leitura Atual</Typography>
               
@@ -278,7 +269,7 @@ export default function PressaoBarometricaPage() {
                         textAlign: 'center'
                       }}
                     >
-                      {pressaoData.pressao} hPa
+                      {pressaoData.pressao} mb
                     </Typography>
                   </Box>
                   
@@ -374,22 +365,22 @@ export default function PressaoBarometricaPage() {
                           <ul>
                             <li>
                               <Typography variant="body2">
-                                <strong>Pressão entre 1009-1015 hPa:</strong> Condições ideais para pesca, estabilidade atmosférica
+                                <strong>Pressão entre 1009-1015 mb:</strong> Condições ideais para pesca, estabilidade atmosférica
                               </Typography>
                             </li>
                             <li>
                               <Typography variant="body2">
-                                <strong>Pressão entre 1000-1009 hPa:</strong> Peixes tendem a se alimentar mais antes de mudanças climáticas
+                                <strong>Pressão entre 1000-1009 mb:</strong> Peixes tendem a se alimentar mais antes de mudanças climáticas
                               </Typography>
                             </li>
                             <li>
                               <Typography variant="body2">
-                                <strong>Pressão abaixo de 1000 hPa:</strong> Indica tempestades e condições desfavoráveis
+                                <strong>Pressão abaixo de 1000 mb:</strong> Indica tempestades e condições desfavoráveis
                               </Typography>
                             </li>
                             <li>
                               <Typography variant="body2">
-                                <strong>Pressão acima de 1020 hPa:</strong> Muito estável, peixes podem ficar menos ativos
+                                <strong>Pressão acima de 1020 mb:</strong> Muito estável, peixes podem ficar menos ativos
                               </Typography>
                             </li>
                             <li>
@@ -406,12 +397,6 @@ export default function PressaoBarometricaPage() {
               )}
             </Paper>
           </Grid>
-          
-          {/* Análise para pesca movida para o rodapé */}
-
-          {/* Mapa Windy removido */}
-          
-          {/* Rodapé removido, conteúdo movido para o botão expansível */}
         </Grid>
       )}
       {/* Espaço adicional no final da página para evitar que o conteúdo seja cortado */}

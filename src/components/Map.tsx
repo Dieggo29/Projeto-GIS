@@ -105,14 +105,12 @@ export default function Map() {
         setPitch(60);
       }
     }
-    // Resetar o flag de mudança manual após processar
-    setManualPitchChange(false);
     
     const pathsToLoad = selectedPlaces
       .map(id => places.find(p => p.id === id)?.geoJsonPath)
       .filter((path): path is string => !!path);
     loadMultiplePolygons(pathsToLoad);
-  }, [selectedPlaces, isMapLoaded, places, pitch, manualPitchChange]);
+  }, [selectedPlaces, isMapLoaded, places]);
   
   useEffect(() => {
     const mapInstance = map.current;
@@ -150,6 +148,11 @@ export default function Map() {
       setManualPitchChange(true);
       setPitch(newPitch);
       map.current.easeTo({ pitch: newPitch, duration: 1000 });
+      
+      // Resetar o flag após um pequeno delay para permitir que a mudança seja processada
+      setTimeout(() => {
+        setManualPitchChange(false);
+      }, 1500);
     }
   };
 
