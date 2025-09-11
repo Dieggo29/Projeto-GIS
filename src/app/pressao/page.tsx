@@ -1,11 +1,8 @@
 // src/app/pressao/page.tsx
 'use client';
 
-import { Box, Typography, Paper, Grid, Button, Slider, LinearProgress, Collapse, IconButton, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Typography, Paper, LinearProgress, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { useEffect, useState, useCallback } from 'react';
-import InfoIcon from '@mui/icons-material/Info';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 export default function PressaoBarometricaPage() {

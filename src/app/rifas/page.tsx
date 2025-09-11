@@ -5,8 +5,6 @@ import {
   Container,
   Typography,
   Box,
-  Card,
-  CardContent,
   Grid,
   Button,
   useTheme,
@@ -33,7 +31,6 @@ import {
 import { useSidebar } from '@/context/SidebarContext';
 import dynamic from 'next/dynamic';
 
-// Importar o componente NoSSR
 const NoSSRPaper = dynamic(() => import('@/components/NoSSRPaper'), { ssr: false });
 
 interface RifaNumber {
@@ -52,11 +49,7 @@ export default function RifasPage() {
   const { isSidebarOpen } = useSidebar();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
-  // Add hydration state
-  const [isHydrated, setIsHydrated] = useState(false);
-
   // Estados
   const [rifaNumbers, setRifaNumbers] = useState<RifaNumber[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);

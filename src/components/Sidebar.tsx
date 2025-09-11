@@ -9,21 +9,20 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  IconButton,
-  useTheme,
-  useMediaQuery,
   Box,
   Typography,
-  Button
+  useTheme,
+  useMediaQuery,
+  IconButton
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
-  Close as CloseIcon,
   Home as HomeIcon,
-  SatelliteAlt as SatelliteAltIcon,
-  WbSunny as WbSunnyIcon,
-  Speed as SpeedIcon,
-  LocalOffer as LocalOfferIcon
+  Map as MapIcon,
+  Casino as CasinoIcon,
+  WbSunny as ClimaIcon,
+  Speed as PressaoIcon,
+  Pets as PeixesIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

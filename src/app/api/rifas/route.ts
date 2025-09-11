@@ -18,26 +18,15 @@ if (rifaNumbers.length === 0) {
 
 export async function GET() {
   try {
-    const rifas: Rifa[] = [
-      {
-        id: 1,
-        titulo: "Rifa do Peixe Dourado",
-        descricao: "Concorra a um kit completo de pesca!",
-        preco: 10.00,
-        totalNumeros: 100,
-        numerosSorteados: [],
-        dataLimite: "2024-12-31",
-        imagem: "/images/rifa-peixe.jpg"
-      }
+    const rifas: { id: number; titulo: string; preco: number; data_sorteio: string }[] = [
+      { id: 1, titulo: 'Rifa do Peixe Dourado', preco: 10, data_sorteio: '2024-02-15' },
+      { id: 2, titulo: 'Rifa da Vara Premium', preco: 25, data_sorteio: '2024-02-20' },
+      { id: 3, titulo: 'Rifa do Kit Completo', preco: 50, data_sorteio: '2024-02-25' }
     ];
     
-    return NextResponse.json(rifas);
+    return Response.json(rifas);
   } catch (error) {
-    console.error('Erro ao buscar rifas:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    return Response.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 

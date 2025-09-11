@@ -29,7 +29,6 @@ export default function AtividadePeixesPage() {
   const [dadosMultiplosDias, setDadosMultiplosDias] = useState<DadosMultiplosDias>({});
   const [diaSelecionado, setDiaSelecionado] = useState(0); // 0 = hoje
   const [loading, setLoading] = useState(true);
-  const [local, setLocal] = useState('Carregando localização...');
   const [error, setError] = useState<string | null>(null);
   const [localizacao, setLocalizacao] = useState<{lat: number, lon: number} | null>(null);
   
@@ -61,7 +60,11 @@ export default function AtividadePeixesPage() {
   }, [diaSelecionado, dadosMultiplosDias]);
 
   // Função para calcular atividade de pesca (APENAS COM DADOS REAIS)
-  const calcularAtividadePesca = (dados: any) => {
+  const calcularAtividadePesca = (dados: {
+    main: { pressure: number; temp: number };
+    wind: { speed: number };
+    weather: Array<{ main: string }>;
+  }) => {
     const pressao = dados.main.pressure;
     const temperatura = dados.main.temp;
     const vento = dados.wind.speed;
@@ -168,7 +171,7 @@ export default function AtividadePeixesPage() {
   };
 
   // Função para buscar dados de múltiplos dias (APENAS DADOS REAIS DA API)
-  const buscarDadosMultiplosDias = async (latitude: number, longitude: number) => {
+  const buscarDadosMultiplosDias = useCallback(async (latitude: number, longitude: number) => {
     setLoading(true);
     const novosDados: DadosMultiplosDias = {};
     
@@ -192,12 +195,22 @@ export default function AtividadePeixesPage() {
           data.setDate(data.getDate() + i);
           const dataKey = data.toISOString().split('T')[0];
           
-          const dadosDia = dados.list.filter((item: any) => 
+          const dadosDia = dados.list.filter((item: {
+            dt_txt: string;
+            main: { pressure: number; temp: number };
+            wind: { speed: number };
+            weather: Array<{ main: string }>;
+          }) => 
             item.dt_txt.startsWith(dataKey)
           );
           
           if (dadosDia.length > 0) {
-            const dadosEscolhidos = dadosDia.find((item: any) => 
+            const dadosEscolhidos = dadosDia.find((item: {
+              dt_txt: string;
+              main: { pressure: number; temp: number };
+              wind: { speed: number };
+              weather: Array<{ main: string }>;
+            }) => 
               item.dt_txt.includes('12:00:00')
             ) || dadosDia[0];
             
@@ -355,15 +368,15 @@ export default function AtividadePeixesPage() {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
           setLocalizacao({ lat, lon });
-          buscarDadosMultiplosDias(lat, lon, 7);
+          buscarDadosMultiplosDias(lat, lon);
         },
         (error) => {
           console.error('Erro ao obter localização:', error);
-          setErro('Não foi possível obter sua localização');
+          setError('Não foi possível obter sua localização');
         }
       );
     } else {
-      setErro('Geolocalização não é suportada neste navegador');
+      setError('Geolocalização não é suportada neste navegador');
     }
   }, [buscarDadosMultiplosDias]);
 
