@@ -13,7 +13,8 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  IconButton
+  IconButton,
+  Button
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -21,8 +22,11 @@ import {
   Casino as CasinoIcon,
   WbSunny as ClimaIcon,
   Speed as PressaoIcon,
-  Pets as PeixesIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  LocalOffer as LocalOfferIcon,
+  SatelliteAlt as SatelliteAltIcon,
+  WbSunny as WbSunnyIcon,
+  Speed as SpeedIcon
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,12 +34,11 @@ import { useSidebar } from '@/context/SidebarContext';
 
 const drawerWidth = 280; // Aumentado para melhor usabilidade mobile
 
-// Reordenar o array menuItems
+// Array menuItems sem "Atividade dos Peixes"
 const menuItems = [
     { text: 'Início', icon: <HomeIcon />, path: '/' },
     { text: 'Rifas', icon: <LocalOfferIcon />, path: '/rifas' },
     { text: 'Satelite', icon: <SatelliteAltIcon />, path: '/mapa' },
-    { text: 'Atividade dos Peixes', icon: <SpeedIcon />, path: '/atividade-peixes' },
     { text: 'Clima', icon: <WbSunnyIcon />, path: '/clima' },
     { text: 'Pressão Barométrica', icon: <SpeedIcon />, path: '/pressao' }
 ];
