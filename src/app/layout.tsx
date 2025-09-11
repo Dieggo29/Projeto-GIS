@@ -25,3 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+<head>
+  <meta
+    name="format-detection"
+    content="telephone=no, date=no, email=no, address=no"
+  />
+  {/* outros meta tags */}
+</head>

@@ -93,17 +93,8 @@ export default function Map() {
     if (!isMapLoaded || places.length === 0) return;
     if (selectedPlaces.length === 0) {
       setIsSpinning(false);
-      // Resetar para visão 2D quando nenhum local estiver selecionado, apenas se não foi uma mudança manual
-      if (map.current && pitch !== 0 && !manualPitchChange) {
-        map.current.easeTo({ pitch: 0, duration: 1000 });
-        setPitch(0);
-      }
-    } else if (pitch === 0 && selectedPlaces.length > 0 && !manualPitchChange) {
-      // Aplicar angulação de 60 graus quando um local for selecionado, apenas se não foi uma mudança manual
-      if (map.current) {
-        map.current.easeTo({ pitch: 60, duration: 1000 });
-        setPitch(60);
-      }
+      // Apenas resetar a rotação quando nenhum local estiver selecionado
+      // Removido: mudança automática de pitch para 0
     }
     
     const pathsToLoad = selectedPlaces
@@ -144,25 +135,30 @@ export default function Map() {
 
   const handlePitchChange = (event: React.MouseEvent<HTMLElement>, newPitch: number | null) => {
     if (newPitch !== null && map.current) {
-      // Marcar que esta é uma mudança manual de pitch
       setManualPitchChange(true);
       setPitch(newPitch);
-      map.current.easeTo({ pitch: newPitch, duration: 1000 });
       
-      // Resetar o flag após um pequeno delay para permitir que a mudança seja processada
+      // Sempre usar easeTo, mas com durações diferentes
+      if (isSpinning) {
+        map.current.easeTo({ pitch: newPitch, duration: 500 }); // Mais rápido durante rotação
+      } else {
+        map.current.easeTo({ pitch: newPitch, duration: 1000 }); // Mais suave quando parado
+      }
+      
+      // Timeout ajustado para cada caso
       setTimeout(() => {
         setManualPitchChange(false);
-      }, 1500);
+      }, isSpinning ? 600 : 1100);
     }
   };
 
   const spinGlobe = useCallback(() => {
     const mapInstance = map.current;
-    if (!mapInstance) return;
+    if (!mapInstance || manualPitchChange) return; // Parar rotação durante mudança manual
     const currentBearing = mapInstance.getBearing();
-    mapInstance.rotateTo(currentBearing + 0.2, { duration: 0 });
+    mapInstance.setBearing(currentBearing + 0.1); // Rotação mais lenta
     animationFrameId.current = requestAnimationFrame(spinGlobe);
-  }, []);
+  }, [manualPitchChange]);
 
   useEffect(() => {
     if (isSpinning) {

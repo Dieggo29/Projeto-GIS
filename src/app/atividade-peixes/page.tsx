@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Typography, LinearProgress, Card, CardContent, Grid } from '@mui/material';
+import { Box, Typography, LinearProgress, Card, CardContent, Grid, useTheme, useMediaQuery } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 interface AtividadePeixesData {
@@ -22,6 +22,10 @@ interface DadosMultiplosDias {
 }
 
 export default function AtividadePeixesPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [dadosMultiplosDias, setDadosMultiplosDias] = useState<DadosMultiplosDias>({});
   const [diaSelecionado, setDiaSelecionado] = useState(0); // 0 = hoje
   const [loading, setLoading] = useState(true);
@@ -291,11 +295,12 @@ export default function AtividadePeixesPage() {
   };
 
   // Função para obter cor do impacto
-  const obterCorImpacto = (impacto: string) => {
+  const obterCorImpacto = (impacto: string): string => {
     switch (impacto) {
       case 'positivo': return '#4caf50';
       case 'negativo': return '#f44336';
-      default: return '#ff9800';
+      case 'neutro': return '#ff9800';
+      default: return '#9e9e9e';
     }
   };
 
@@ -328,29 +333,48 @@ export default function AtividadePeixesPage() {
     <Box sx={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-      py: 2,
-      px: 2
+      py: { xs: 1, sm: 2, md: 3 },
+      px: { xs: 1, sm: 2, md: 3 },
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       {/* Título */}
-      <Box sx={{ textAlign: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold' }}>
+      <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 3 } }}>
+        <Typography 
+          variant={isMobile ? "h6" : isTablet ? "h5" : "h4"} 
+          sx={{ 
+            color: 'white', 
+            fontWeight: 'bold',
+            fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+          }}
+        >
           Atividade de peixes
         </Typography>
       </Box>
 
       {/* Calendário (APENAS DIAS COM DADOS REAIS) */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        mb: { xs: 2, sm: 3 },
+        overflowX: 'auto',
+        px: { xs: 1, sm: 0 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 0.5, sm: 1 },
+          minWidth: 'fit-content'
+        }}>
           {diasCalendario.map((item, index) => (
             <Box
               key={index}
               onClick={() => setDiaSelecionado(item.index)}
               sx={{
                 textAlign: 'center',
-                p: 1.5,
-                minWidth: 60,
-                height: 80,
-                borderRadius: 2,
+                p: { xs: 1, sm: 1.5 },
+                minWidth: { xs: 50, sm: 60 },
+                height: { xs: 70, sm: 80 },
+                borderRadius: { xs: 1, sm: 2 },
                 cursor: 'pointer',
                 backgroundColor: diaSelecionado === item.index ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
@@ -368,11 +392,12 @@ export default function AtividadePeixesPage() {
               }}
             >
               <Typography 
-                variant="h6" 
+                variant={isMobile ? "body1" : "h6"} 
                 sx={{ 
                   color: diaSelecionado === item.index ? '#1e3c72' : 'white', 
                   fontWeight: 'bold',
-                  lineHeight: 1
+                  lineHeight: 1,
+                  fontSize: { xs: '1rem', sm: '1.25rem' }
                 }}
               >
                 {item.data}
@@ -381,7 +406,7 @@ export default function AtividadePeixesPage() {
                 variant="caption" 
                 sx={{ 
                   color: diaSelecionado === item.index ? '#1e3c72' : 'rgba(255, 255, 255, 0.8)', 
-                  fontSize: '11px',
+                  fontSize: { xs: '0.625rem', sm: '0.75rem' },
                   textTransform: 'uppercase',
                   fontWeight: 'bold',
                   lineHeight: 1,
@@ -396,30 +421,67 @@ export default function AtividadePeixesPage() {
       </Box>
 
       {/* Localização */}
-      <Typography variant="body2" align="center" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3 }}>
+      <Typography 
+        variant={isMobile ? "caption" : "body2"} 
+        align="center" 
+        sx={{ 
+          color: 'rgba(255, 255, 255, 0.8)', 
+          mb: { xs: 2, sm: 3 },
+          fontSize: { xs: '0.75rem', sm: '0.875rem' }
+        }}
+      >
         📍 {dadosAtividade.local}
       </Typography>
 
       {dadosAtividade.loading || loading ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
-          <LinearProgress sx={{ width: '300px', mb: 2 }} />
-          <Typography sx={{ color: 'white' }}>Analisando condições para pesca...</Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          mt: { xs: 2, sm: 4 },
+          px: { xs: 2, sm: 0 }
+        }}>
+          <LinearProgress sx={{ 
+            width: { xs: '100%', sm: '300px' }, 
+            mb: 2 
+          }} />
+          <Typography sx={{ 
+            color: 'white',
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            textAlign: 'center'
+          }}>
+            Analisando condições para pesca...
+          </Typography>
         </Box>
       ) : error ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
-          <Typography sx={{ color: '#ff6b6b', textAlign: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          mt: { xs: 2, sm: 4 },
+          px: { xs: 2, sm: 0 }
+        }}>
+          <Typography sx={{ 
+            color: '#ff6b6b', 
+            textAlign: 'center',
+            fontSize: { xs: '0.875rem', sm: '1rem' }
+          }}>
             {error}
           </Typography>
         </Box>
       ) : (
         <>
           {/* Nota circular */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            mb: { xs: 3, sm: 4 }
+          }}>
             <Box sx={{ position: 'relative', display: 'inline-flex' }}>
               <Box
                 sx={{
-                  width: 200,
-                  height: 200,
+                  width: { xs: 150, sm: 180, md: 200 },
+                  height: { xs: 150, sm: 180, md: 200 },
                   borderRadius: '50%',
                   background: `conic-gradient(#4caf50 0deg ${(dadosAtividade.atividade / 100) * 360}deg, rgba(255, 255, 255, 0.2) ${(dadosAtividade.atividade / 100) * 360}deg 360deg)`,
                   display: 'flex',
@@ -430,8 +492,8 @@ export default function AtividadePeixesPage() {
               >
                 <Box
                   sx={{
-                    width: 160,
-                    height: 160,
+                    width: { xs: 120, sm: 140, md: 160 },
+                    height: { xs: 120, sm: 140, md: 160 },
                     borderRadius: '50%',
                     backgroundColor: 'rgba(30, 60, 114, 0.9)',
                     display: 'flex',
@@ -440,10 +502,24 @@ export default function AtividadePeixesPage() {
                     justifyContent: 'center'
                   }}
                 >
-                  <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold', lineHeight: 1 }}>
+                  <Typography 
+                    variant={isMobile ? "h3" : isTablet ? "h2" : "h2"} 
+                    sx={{ 
+                      color: 'white', 
+                      fontWeight: 'bold', 
+                      lineHeight: 1,
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
+                    }}
+                  >
                     {dadosAtividade.atividade}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}
+                  >
                     ★★
                   </Typography>
                 </Box>
@@ -452,30 +528,74 @@ export default function AtividadePeixesPage() {
           </Box>
 
           {/* Qualidade */}
-          <Typography variant="h6" align="center" sx={{ color: 'white', mb: 4, fontWeight: 'bold' }}>
+          <Typography 
+            variant={isMobile ? "body1" : "h6"} 
+            align="center" 
+            sx={{ 
+              color: 'white', 
+              mb: { xs: 3, sm: 4 }, 
+              fontWeight: 'bold',
+              fontSize: { xs: '1.125rem', sm: '1.25rem' }
+            }}
+          >
             {dadosAtividade.qualidade}
           </Typography>
 
           {/* Métricas Meteorológicas */}
-          <Box sx={{ maxWidth: 600, mx: 'auto', mb: 4 }}>
-            <Typography variant="h6" align="center" sx={{ color: 'white', mb: 3, fontWeight: 'bold' }}>
+          <Box sx={{ 
+            maxWidth: { xs: '100%', sm: 600 }, 
+            mx: 'auto', 
+            mb: { xs: 3, sm: 4 },
+            px: { xs: 1, sm: 0 }
+          }}>
+            <Typography 
+              variant={isMobile ? "body1" : "h6"} 
+              align="center" 
+              sx={{ 
+                color: 'white', 
+                mb: { xs: 2, sm: 3 }, 
+                fontWeight: 'bold',
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}
+            >
               📊 Métricas do Cálculo
             </Typography>
             
-            <Grid container spacing={2}>
+            <Grid container spacing={{ xs: 1, sm: 2 }}>
               {/* Pressão Barométrica */}
               <Grid item xs={6}>
                 <Card sx={{ 
                   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                   backdropFilter: 'blur(10px)',
                   border: `2px solid ${obterCorImpacto(dadosAtividade.fatores.pressao.impacto)}`,
-                  borderRadius: 2
+                  borderRadius: { xs: 1, sm: 2 },
+                  height: '100%'
                 }}>
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                  <CardContent sx={{ 
+                    p: { xs: 1, sm: 2 }, 
+                    '&:last-child': { pb: { xs: 1, sm: 2 } },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography 
+                      variant={isMobile ? "caption" : "body2"} 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.8)', 
+                        mb: 1,
+                        fontSize: { xs: '0.625rem', sm: '0.875rem' }
+                      }}
+                    >
                       🌡️ Pressão Barométrica
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                    <Typography 
+                      variant={isMobile ? "body1" : "h6"} 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold',
+                        fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                      }}
+                    >
                       {dadosAtividade.fatores.pressao.valor.toFixed(0)} mb
                     </Typography>
                     <Typography 
@@ -483,12 +603,21 @@ export default function AtividadePeixesPage() {
                       sx={{ 
                         color: obterCorImpacto(dadosAtividade.fatores.pressao.impacto),
                         fontWeight: 'bold',
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        fontSize: { xs: '0.625rem', sm: '0.75rem' }
                       }}
                     >
                       {dadosAtividade.fatores.pressao.impacto}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', display: 'block' }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.6)', 
+                        display: 'block',
+                        fontSize: { xs: '0.5rem', sm: '0.75rem' },
+                        mt: 'auto'
+                      }}
+                    >
                       Ideal: 1013-1020 mb
                     </Typography>
                   </CardContent>
@@ -501,13 +630,34 @@ export default function AtividadePeixesPage() {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                   backdropFilter: 'blur(10px)',
                   border: `2px solid ${obterCorImpacto(dadosAtividade.fatores.temperatura.impacto)}`,
-                  borderRadius: 2
+                  borderRadius: { xs: 1, sm: 2 },
+                  height: '100%'
                 }}>
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                  <CardContent sx={{ 
+                    p: { xs: 1, sm: 2 }, 
+                    '&:last-child': { pb: { xs: 1, sm: 2 } },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography 
+                      variant={isMobile ? "caption" : "body2"} 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.8)', 
+                        mb: 1,
+                        fontSize: { xs: '0.625rem', sm: '0.875rem' }
+                      }}
+                    >
                       🌡️ Temperatura
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                    <Typography 
+                      variant={isMobile ? "body1" : "h6"} 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold',
+                        fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                      }}
+                    >
                       {dadosAtividade.fatores.temperatura.valor.toFixed(1)}°C
                     </Typography>
                     <Typography 
@@ -515,12 +665,21 @@ export default function AtividadePeixesPage() {
                       sx={{ 
                         color: obterCorImpacto(dadosAtividade.fatores.temperatura.impacto),
                         fontWeight: 'bold',
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        fontSize: { xs: '0.625rem', sm: '0.75rem' }
                       }}
                     >
                       {dadosAtividade.fatores.temperatura.impacto}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', display: 'block' }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.6)', 
+                        display: 'block',
+                        fontSize: { xs: '0.5rem', sm: '0.75rem' },
+                        mt: 'auto'
+                      }}
+                    >
                       Ideal: 15-25°C
                     </Typography>
                   </CardContent>
@@ -533,13 +692,34 @@ export default function AtividadePeixesPage() {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                   backdropFilter: 'blur(10px)',
                   border: `2px solid ${obterCorImpacto(dadosAtividade.fatores.vento.impacto)}`,
-                  borderRadius: 2
+                  borderRadius: { xs: 1, sm: 2 },
+                  height: '100%'
                 }}>
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                  <CardContent sx={{ 
+                    p: { xs: 1, sm: 2 }, 
+                    '&:last-child': { pb: { xs: 1, sm: 2 } },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography 
+                      variant={isMobile ? "caption" : "body2"} 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.8)', 
+                        mb: 1,
+                        fontSize: { xs: '0.625rem', sm: '0.875rem' }
+                      }}
+                    >
                       💨 Velocidade do Vento
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                    <Typography 
+                      variant={isMobile ? "body1" : "h6"} 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold',
+                        fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                      }}
+                    >
                       {(dadosAtividade.fatores.vento.valor * 3.6).toFixed(1)} km/h
                     </Typography>
                     <Typography 
@@ -547,12 +727,21 @@ export default function AtividadePeixesPage() {
                       sx={{ 
                         color: obterCorImpacto(dadosAtividade.fatores.vento.impacto),
                         fontWeight: 'bold',
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        fontSize: { xs: '0.625rem', sm: '0.75rem' }
                       }}
                     >
                       {dadosAtividade.fatores.vento.impacto}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', display: 'block' }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.6)', 
+                        display: 'block',
+                        fontSize: { xs: '0.5rem', sm: '0.75rem' },
+                        mt: 'auto'
+                      }}
+                    >
                       Ideal: 5-15 km/h
                     </Typography>
                   </CardContent>
@@ -565,13 +754,34 @@ export default function AtividadePeixesPage() {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                   backdropFilter: 'blur(10px)',
                   border: `2px solid ${obterCorImpacto(dadosAtividade.fatores.clima.impacto)}`,
-                  borderRadius: 2
+                  borderRadius: { xs: 1, sm: 2 },
+                  height: '100%'
                 }}>
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                  <CardContent sx={{ 
+                    p: { xs: 1, sm: 2 }, 
+                    '&:last-child': { pb: { xs: 1, sm: 2 } },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <Typography 
+                      variant={isMobile ? "caption" : "body2"} 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.8)', 
+                        mb: 1,
+                        fontSize: { xs: '0.625rem', sm: '0.875rem' }
+                      }}
+                    >
                       🌤️ Condições Climáticas
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
+                    <Typography 
+                      variant={isMobile ? "caption" : "h6"} 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        fontSize: { xs: '0.75rem', sm: '1rem' }
+                      }}
+                    >
                       {formatarCondicaoClimatica(dadosAtividade.fatores.clima.condicao)}
                     </Typography>
                     <Typography 
@@ -579,12 +789,21 @@ export default function AtividadePeixesPage() {
                       sx={{ 
                         color: obterCorImpacto(dadosAtividade.fatores.clima.impacto),
                         fontWeight: 'bold',
-                        textTransform: 'uppercase'
+                        textTransform: 'uppercase',
+                        fontSize: { xs: '0.625rem', sm: '0.75rem' }
                       }}
                     >
                       {dadosAtividade.fatores.clima.impacto}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', display: 'block' }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: 'rgba(255, 255, 255, 0.6)', 
+                        display: 'block',
+                        fontSize: { xs: '0.5rem', sm: '0.75rem' },
+                        mt: 'auto'
+                      }}
+                    >
                       Ideal: Céu Limpo
                     </Typography>
                   </CardContent>
@@ -593,11 +812,32 @@ export default function AtividadePeixesPage() {
             </Grid>
 
             {/* Explicação do Cálculo */}
-            <Box sx={{ mt: 3, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', textAlign: 'center', mb: 1 }}>
+            <Box sx={{ 
+              mt: { xs: 2, sm: 3 }, 
+              p: { xs: 1.5, sm: 2 }, 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: { xs: 1, sm: 2 } 
+            }}>
+              <Typography 
+                variant={isMobile ? "caption" : "body2"} 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.8)', 
+                  textAlign: 'center', 
+                  mb: 1,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}
+              >
                 💡 Como é calculado?
               </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center', display: 'block' }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.6)', 
+                  textAlign: 'center', 
+                  display: 'block',
+                  fontSize: { xs: '0.625rem', sm: '0.75rem' }
+                }}
+              >
                 A nota de atividade é calculada com base nas condições meteorológicas ideais para pesca:
                 Pressão (30%), Clima (30%), Temperatura (20%) e Vento (20%)
               </Typography>

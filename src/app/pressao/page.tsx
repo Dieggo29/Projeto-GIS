@@ -1,7 +1,7 @@
 // src/app/pressao/page.tsx
 'use client';
 
-import { Box, Typography, Paper, Grid, Button, Slider, LinearProgress, Collapse, IconButton } from '@mui/material';
+import { Box, Typography, Paper, Grid, Button, Slider, LinearProgress, Collapse, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfoIcon from '@mui/icons-material/Info';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -9,6 +9,10 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 export default function PressaoBarometricaPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [pressaoData, setPressaoData] = useState({
     pressao: null,
     tendencia: null,
@@ -129,12 +133,11 @@ export default function PressaoBarometricaPage() {
   }, []);
 
   // Função para determinar a cor baseada na pressão
-  // Dentro do componente, melhore a tipagem:
   const getPressaoColor = (pressao: number | null): string => {
-    if (!pressao) return '#888';
-    if (pressao < 1000) return '#d32f2f';
-    if (pressao > 1020) return '#2e7d32';
-    return '#1976d2';
+    if (!pressao) return 'rgba(255, 255, 255, 0.5)';
+    if (pressao < 1000) return '#ff6b6b';
+    if (pressao > 1020) return '#4caf50';
+    return '#64b5f6';
   };
   
   const getPressaoDescricao = (pressao: number | null): string => {
@@ -172,232 +175,181 @@ export default function PressaoBarometricaPage() {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      backgroundColor: '#f5f5f5', 
-      py: 4,
-      px: 2
+      background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+      py: { xs: 1, sm: 2, md: 3 },
+      px: { xs: 1, sm: 2, md: 3 },
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        gutterBottom 
-        align="center" 
-        sx={{ 
-          fontWeight: 'bold', 
-          color: '#1976d2',
-          mb: 4
-        }}
-      >
-        Pressão Barométrica
-      </Typography>
+      {/* Título */}
+      <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 3 } }}>
+        <Typography 
+          variant={isMobile ? "h6" : isTablet ? "h5" : "h4"} 
+          sx={{ 
+            color: 'white', 
+            fontWeight: 'bold',
+            fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+          }}
+        >
+          Pressão Barométrica
+        </Typography>
+      </Box>
       
       {/* Localização e botão de atualizar */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ mr: 2 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        mb: { xs: 1, sm: 2 },
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 1, sm: 0 }
+      }}>
+        <Typography 
+          variant={isMobile ? "caption" : "body2"} 
+          sx={{ 
+            mr: { sm: 2 }, 
+            color: 'rgba(255, 255, 255, 0.8)',
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            textAlign: 'center'
+          }}
+        >
           📍 {pressaoData.local}
         </Typography>
         <IconButton 
           onClick={obterLocalizacao}
           disabled={localizacaoStatus.obtendo}
-          size="small"
+          size={isMobile ? "small" : "medium"}
           sx={{ 
-            backgroundColor: 'rgba(25,118,210,0.1)',
-            '&:hover': { backgroundColor: 'rgba(25,118,210,0.2)' }
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            color: 'white',
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+            '&:disabled': { color: 'rgba(255, 255, 255, 0.5)' }
           }}
         >
-          <MyLocationIcon />
+          <MyLocationIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
       </Box>
       
       {/* Erro de localização */}
       {localizacaoStatus.erro && (
-        <Typography variant="body2" color="error" sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography 
+          variant={isMobile ? "caption" : "body2"} 
+          sx={{ 
+            mb: 2, 
+            textAlign: 'center', 
+            color: '#ff6b6b',
+            px: { xs: 2, sm: 0 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }}
+        >
           {localizacaoStatus.erro}
         </Typography>
       )}
       
       {/* Erro de dados */}
       {pressaoData.error && (
-        <Typography variant="body2" color="error" sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography 
+          variant={isMobile ? "caption" : "body2"} 
+          sx={{ 
+            mb: 2, 
+            textAlign: 'center', 
+            color: '#ff6b6b',
+            px: { xs: 2, sm: 0 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }}
+        >
           {pressaoData.error}
         </Typography>
       )}
       
       {pressaoData.loading ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
-          <LinearProgress sx={{ width: '300px', mb: 2 }} />
-          <Typography>Carregando dados de pressão...</Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          mt: { xs: 2, sm: 4 },
+          px: { xs: 2, sm: 0 }
+        }}>
+          <LinearProgress sx={{ 
+            width: { xs: '100%', sm: '300px' }, 
+            mb: 2 
+          }} />
+          <Typography sx={{ 
+            color: 'white',
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            textAlign: 'center'
+          }}>
+            Carregando dados de pressão...
+          </Typography>
           {localizacaoStatus.obtendo && (
-            <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
+            <Typography 
+              variant={isMobile ? "caption" : "body2"} 
+              sx={{ 
+                mt: 1, 
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                textAlign: 'center'
+              }}
+            >
               Obtendo sua localização...
             </Typography>
           )}
         </Box>
       ) : (
-        <Grid container spacing={3} justifyContent="center">
-          <Grid item xs={12} md={8}>
-            <Paper sx={{
-              p: 4,
-              width: '100%',
-              maxWidth: '800px',
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              backgroundColor: '#e3f2fd',
-              backgroundImage: 'linear-gradient(to bottom, #bbdefb, #e3f2fd)',
-              borderRadius: 2,
-              boxShadow: '0 4px 20px rgba(0, 105, 192, 0.15)',
-              margin: '0 auto'
-            }}>
-              <Typography variant="h6" gutterBottom align="center" sx={{ width: '100%' }}>Leitura Atual</Typography>
-              
-              {/* Escala de qualidade para pesca */}
-              {pressaoData.pressao && (
-                <Box sx={{ width: '100%', mt: 3 }}>
-                  <Typography variant="h6" align="center" gutterBottom>
-                    Qualidade para Pesca
-                  </Typography>
-                  
-                  {/* Leitura atual centralizada com a escala */}
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                    <Typography 
-                      variant="h2" 
-                      component="div" 
-                      sx={{ 
-                        color: getPressaoColor(pressaoData.pressao),
-                        fontWeight: 'bold',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {pressaoData.pressao} mb
-                    </Typography>
-                  </Box>
-                  
-                  {/* Valor e descrição da qualidade */}
-                  <Typography 
-                    variant="h5" 
-                    align="center" 
-                    sx={{ 
-                      color: getQualidadeColor(getQualidadePesca(pressaoData.pressao).valor),
-                      fontWeight: 'bold',
-                      mb: 1
-                    }}
-                  >
-                    {getQualidadePesca(pressaoData.pressao).texto}
-                  </Typography>
-                  
-                  {/* Escala visual */}
-                  <Box sx={{ px: 2, py: 1 }}>
-                    <Slider
-                      value={getQualidadePesca(pressaoData.pressao).valor}
-                      min={0}
-                      max={100}
-                      step={1}
-                      disabled
-                      sx={{
-                        '& .MuiSlider-thumb': {
-                          height: 24,
-                          width: 24,
-                          backgroundColor: '#fff',
-                          border: '2px solid currentColor',
-                        },
-                        '& .MuiSlider-track': {
-                          height: 10,
-                          borderRadius: 5,
-                          backgroundColor: getQualidadeColor(getQualidadePesca(pressaoData.pressao).valor),
-                        },
-                        '& .MuiSlider-rail': {
-                          height: 10,
-                          borderRadius: 5,
-                          opacity: 0.5,
-                          backgroundColor: '#bfbfbf',
-                        },
-                        '& .MuiSlider-mark': {
-                          backgroundColor: '#bfbfbf',
-                          height: 8,
-                          width: 2,
-                          marginTop: -3,
-                        },
-                      }}
-                      marks={[
-                        { value: 0, label: 'Ruim' },
-                        { value: 25, label: 'Fraca' },
-                        { value: 50, label: 'Moderada' },
-                        { value: 75, label: 'Boa' },
-                        { value: 100, label: 'Excelente' },
-                      ]}
-                    />
-                  </Box>
-                  
-                  {/* Anotações movidas para baixo da escala com botão para análise de pesca */}
-                  <Box sx={{ mt: 3, p: 2, backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 2, color: '#000' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000' }}>
-                        Tendência: <strong>{pressaoData.tendencia}</strong>
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => setMostrarAnalisePesca(!mostrarAnalisePesca)}
-                        endIcon={mostrarAnalisePesca ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                        sx={{ 
-                          backgroundColor: '#1976d2',
-                          '&:hover': { backgroundColor: '#1565c0' },
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                        }}
-                      >
-                        Análise para Pesca
-                      </Button>
-                    </Box>
-                    <Typography variant="body2" sx={{ color: '#000', mt: 1 }}>
-                      {getPressaoDescricao(pressaoData.pressao)}
-                    </Typography>
-                    
-                    {/* Conteúdo expansível com análise para pesca */}
-                    <Collapse in={mostrarAnalisePesca} timeout="auto" unmountOnExit>
-                      <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(225, 245, 254, 0.9)', borderRadius: 2 }}>
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          A pressão barométrica é um indicador importante para prever condições de pesca. 
-                          Mudanças na pressão podem afetar o comportamento dos peixes:
-                        </Typography>
-                        <Box sx={{ pl: 2 }}>
-                          <ul>
-                            <li>
-                              <Typography variant="body2">
-                                <strong>Pressão entre 1009-1015 mb:</strong> Condições ideais para pesca, estabilidade atmosférica
-                              </Typography>
-                            </li>
-                            <li>
-                              <Typography variant="body2">
-                                <strong>Pressão entre 1000-1009 mb:</strong> Peixes tendem a se alimentar mais antes de mudanças climáticas
-                              </Typography>
-                            </li>
-                            <li>
-                              <Typography variant="body2">
-                                <strong>Pressão abaixo de 1000 mb:</strong> Indica tempestades e condições desfavoráveis
-                              </Typography>
-                            </li>
-                            <li>
-                              <Typography variant="body2">
-                                <strong>Pressão acima de 1020 mb:</strong> Muito estável, peixes podem ficar menos ativos
-                              </Typography>
-                            </li>
-                            <li>
-                              <Typography variant="body2">
-                                <strong>Tendência:</strong> Mudanças na pressão são mais importantes que o valor absoluto
-                              </Typography>
-                            </li>
-                          </ul>
-                        </Box>
-                      </Box>
-                    </Collapse>
-                  </Box>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
+        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Paper sx={{
+            p: { xs: 2, sm: 3, md: 4 },
+            width: '100%',
+            maxWidth: { xs: '100%', sm: '600px', md: '800px' },
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: { xs: 1, sm: 2 },
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            margin: '0 auto'
+          }}>
+            <Typography 
+              variant={isMobile ? "body1" : "h6"} 
+              gutterBottom 
+              align="center" 
+              sx={{ 
+                width: '100%', 
+                color: 'white', 
+                mb: { xs: 2, sm: 3 },
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}
+            >
+              Pressão Barométrica Atual
+            </Typography>
+            
+            {/* Leitura atual da pressão */}
+            {pressaoData.pressao && (
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                mb: { xs: 2, sm: 3 }
+              }}>
+                <Typography 
+                  variant={isMobile ? "h3" : "h2"} 
+                  component="div" 
+                  sx={{ 
+                    color: 'white',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    fontSize: { xs: '2.5rem', sm: '3rem', md: '4rem' }
+                  }}
+                >
+                  {pressaoData.pressao} mb
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Box>
       )}
       {/* Espaço adicional no final da página para evitar que o conteúdo seja cortado */}
       <Box sx={{ height: '80px' }} />

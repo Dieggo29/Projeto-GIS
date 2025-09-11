@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #2E2E2E;
+  --foreground: #ffffff;
+  --primary-green: #7CB342;
+  --secondary-green: #689F38;
+  --dark-bg: #1a1a1a;
+  --card-bg: #333333;
+  --text-light: #ffffff;
+  --text-muted: #cccccc;
 }
 
 @theme inline {
@@ -14,8 +20,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #2E2E2E;
+    --foreground: #ffffff;
   }
 }
 
@@ -23,4 +29,40 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Estilos globais para a nova paleta */
+.primary-green {
+  color: var(--primary-green);
+}
+
+.bg-primary-green {
+  background-color: var(--primary-green);
+}
+
+.bg-dark {
+  background-color: var(--dark-bg);
+}
+
+.bg-card {
+  background-color: var(--card-bg);
+}
+
+/* Animações globais */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
