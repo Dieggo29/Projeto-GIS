@@ -16,11 +16,19 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setIsHydrated(true);
+    try {
+      setIsHydrated(true);
+    } catch (error) {
+      console.error('Erro na hidratação do SidebarContext:', error);
+    }
   }, []);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
+    try {
+      setSidebarOpen(!isSidebarOpen);
+    } catch (error) {
+      console.error('Erro ao alternar sidebar:', error);
+    }
   };
 
   return (

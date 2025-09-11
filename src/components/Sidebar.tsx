@@ -12,28 +12,22 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Box
+  Box,
+  Typography,
+  Button
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Close as CloseIcon,
   Home as HomeIcon,
-  TrendingUp as TrendingUpIcon,
-  Speed as SpeedIcon
+  SatelliteAlt as SatelliteAltIcon,
+  WbSunny as WbSunnyIcon,
+  Speed as SpeedIcon,
+  LocalOffer as LocalOfferIcon
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/context/SidebarContext';
-import HomeIcon from '@mui/icons-material/Home';
-import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
-import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import SpeedIcon from '@mui/icons-material/Speed';
-import PhishingIcon from '@mui/icons-material/Phishing';
-import QuizIcon from '@mui/icons-material/Quiz';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import MapIcon from '@mui/icons-material/Map';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
 
 const drawerWidth = 280; // Aumentado para melhor usabilidade mobile
 
@@ -44,8 +38,7 @@ const menuItems = [
     { text: 'Satelite', icon: <SatelliteAltIcon />, path: '/mapa' },
     { text: 'Atividade dos Peixes', icon: <SpeedIcon />, path: '/atividade-peixes' },
     { text: 'Clima', icon: <WbSunnyIcon />, path: '/clima' },
-    { text: 'Pressão Barométrica', icon: <SpeedIcon />, path: '/pressao' },
-    { text: 'Dúvidas de Pesca', icon: <HelpOutlineIcon />, path: '/duvidas-pesca' }
+    { text: 'Pressão Barométrica', icon: <SpeedIcon />, path: '/pressao' }
 ];
 
 export default function Sidebar() {

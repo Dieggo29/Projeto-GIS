@@ -2,7 +2,7 @@
 'use client';
 
 import { Box, Typography, Paper, Grid, Button, Slider, LinearProgress, Collapse, IconButton, useTheme, useMediaQuery } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import InfoIcon from '@mui/icons-material/Info';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';

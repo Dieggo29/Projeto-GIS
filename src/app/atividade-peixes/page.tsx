@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, LinearProgress, Card, CardContent, Grid, useTheme, useMediaQuery } from '@mui/material';
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface AtividadePeixesData {
   atividade: number; // 0-100
