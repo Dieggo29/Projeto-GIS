@@ -25,9 +25,6 @@ export default function PressaoBarometricaPage() {
     obtendo: false,
     erro: null
   });
-  
-  // Estado para controlar a exibição da análise para pesca
-  const [mostrarAnalisePesca, setMostrarAnalisePesca] = useState(false);
 
   // Função para obter a localização do usuário
   const obterLocalizacao = useCallback(() => {
@@ -48,15 +45,12 @@ export default function PressaoBarometricaPage() {
           buscarDadosPressao(latitude, longitude);
         },
         (error) => {
+          console.error('Erro ao obter localização:', error);
           setLocalizacaoStatus({
             solicitada: true,
             obtendo: false,
-            erro: `Erro ao obter localização: ${error.message}`
+            erro: 'Não foi possível obter sua localização'
           });
-          // Em caso de erro, usar localização padrão (Curitiba)
-          const latitudePadrao = -25.428;
-          const longitudePadrao = -49.273;
-          buscarDadosPressao(latitudePadrao, longitudePadrao);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
@@ -71,7 +65,7 @@ export default function PressaoBarometricaPage() {
   };
   
   // Função para buscar dados de pressão barométrica com base na localização
-  const buscarDadosPressao = async (lat: number, lon: number): Promise<void> => {
+  const buscarDadosPressao = useCallback(async (lat: number, lon: number): Promise<void> => {
     setPressaoData(prev => ({ ...prev, loading: true, error: null }));
     
     try {
@@ -105,11 +99,11 @@ export default function PressaoBarometricaPage() {
       setPressaoData(prev => ({ 
         ...prev, 
         loading: false, 
-        error: `Erro ao carregar dados: ${error.message}`,
+        error: `Erro ao carregar dados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         local: `Localização (${lat.toFixed(4)}, ${lon.toFixed(4)})`
       }));
     }
-  };
+  }, []);
   
   useEffect(() => {
     // Solicita localização automaticamente ao carregar a página
@@ -118,225 +112,57 @@ export default function PressaoBarometricaPage() {
 
   // Função para determinar a cor baseada na pressão
   const getPressaoColor = (pressao: number | null): string => {
-    if (!pressao) return 'rgba(255, 255, 255, 0.5)';
-    if (pressao < 1000) return '#ff6b6b';
-    if (pressao > 1020) return '#4caf50';
-    return '#64b5f6';
+    if (!pressao) return '#666';
+    if (pressao < 1000) return '#f44336'; // Vermelho - baixa
+    if (pressao > 1020) return '#4caf50'; // Verde - alta
+    return '#ff9800'; // Laranja - normal
   };
-  
+
+  // Função para obter descrição da pressão
   const getPressaoDescricao = (pressao: number | null): string => {
-    if (!pressao) return 'Desconhecida';
-    if (pressao < 1000) return 'Baixa - Possibilidade de chuva ou tempestade';
-    if (pressao > 1020) return 'Alta - Geralmente indica tempo estável e seco';
-    return 'Normal - Condições atmosféricas estáveis';
+    if (!pressao) return 'Carregando...';
+    if (pressao < 1000) return 'Baixa';
+    if (pressao > 1020) return 'Alta';
+    return 'Normal';
   };
-  
-  const getQualidadePesca = (pressao: number | null): { texto: string; valor: number } => {
-    if (!pressao) return { texto: 'Desconhecida', valor: 50 };
-    
-    if (pressao < 1000) {
-      return { texto: 'Ruim', valor: 20 };
-    } else if (pressao >= 1000 && pressao < 1009) {
-      return { texto: 'Boa', valor: 75 };
-    } else if (pressao >= 1009 && pressao <= 1015) {
-      return { texto: 'Excelente', valor: 100 };
-    } else if (pressao > 1015 && pressao <= 1022) {
-      return { texto: 'Boa', valor: 80 };
-    } else {
-      return { texto: 'Moderada', valor: 60 };
-    }
+
+  // Função para determinar qualidade para pesca
+  const getQualidadePesca = (pressao: number | null): string => {
+    if (!pressao) return 'Analisando...';
+    if (pressao >= 1010 && pressao <= 1020) return 'Excelente';
+    if (pressao >= 1005 && pressao < 1010) return 'Boa';
+    if (pressao >= 1000 && pressao < 1005) return 'Regular';
+    return 'Ruim';
   };
-  
-  // Função para obter cor baseada na qualidade
-  const getQualidadeColor = (valor: number): string => {
-    if (valor >= 90) return '#4caf50'; // Verde - Excelente
-    if (valor >= 70) return '#8bc34a'; // Verde claro - Boa
-    if (valor >= 50) return '#ff9800'; // Laranja - Moderada
-    if (valor >= 30) return '#ff5722'; // Laranja escuro - Fraca
-    return '#f44336'; // Vermelho - Ruim
+
+  // Função para cor da qualidade de pesca
+  const getQualidadeColor = (pressao: number | null): string => {
+    if (!pressao) return '#666';
+    if (pressao >= 1010 && pressao <= 1020) return '#4caf50'; // Verde
+    if (pressao >= 1005 && pressao < 1010) return '#8bc34a'; // Verde claro
+    if (pressao >= 1000 && pressao < 1005) return '#ff9800'; // Laranja
+    return '#f44336'; // Vermelho
   };
 
   return (
     <Box sx={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-      py: { xs: 1, sm: 2, md: 3 },
-      px: { xs: 1, sm: 2, md: 3 },
-      display: 'flex',
-      flexDirection: 'column'
+      padding: isMobile ? 2 : 3,
+      maxWidth: '1200px',
+      margin: '0 auto',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)'
     }}>
-      {/* Título */}
-      <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 3 } }}>
-        <Typography 
-          variant={isMobile ? "h6" : isTablet ? "h5" : "h4"} 
-          sx={{ 
-            color: 'white', 
-            fontWeight: 'bold',
-            fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
-          }}
-        >
-          Pressão Barométrica
-        </Typography>
-      </Box>
-      
-      {/* Localização e botão de atualizar */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        mb: { xs: 1, sm: 2 },
-        flexDirection: { xs: 'column', sm: 'row' },
-        gap: { xs: 1, sm: 0 }
+      {/* Resto do JSX do componente */}
+      <Typography variant="h4" component="h1" gutterBottom sx={{ 
+        color: 'white',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        marginBottom: 3
       }}>
-        <Typography 
-          variant={isMobile ? "caption" : "body2"} 
-          sx={{ 
-            mr: { sm: 2 }, 
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontSize: { xs: '0.75rem', sm: '0.875rem' },
-            textAlign: 'center'
-          }}
-        >
-          📍 {pressaoData.local}
-        </Typography>
-        <IconButton 
-          onClick={obterLocalizacao}
-          disabled={localizacaoStatus.obtendo}
-          size={isMobile ? "small" : "medium"}
-          sx={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            color: 'white',
-            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
-            '&:disabled': { color: 'rgba(255, 255, 255, 0.5)' }
-          }}
-        >
-          <MyLocationIcon fontSize={isMobile ? "small" : "medium"} />
-        </IconButton>
-      </Box>
+        Pressão Barométrica
+      </Typography>
       
-      {/* Erro de localização */}
-      {localizacaoStatus.erro && (
-        <Typography 
-          variant={isMobile ? "caption" : "body2"} 
-          sx={{ 
-            mb: 2, 
-            textAlign: 'center', 
-            color: '#ff6b6b',
-            px: { xs: 2, sm: 0 },
-            fontSize: { xs: '0.75rem', sm: '0.875rem' }
-          }}
-        >
-          {localizacaoStatus.erro}
-        </Typography>
-      )}
-      
-      {/* Erro de dados */}
-      {pressaoData.error && (
-        <Typography 
-          variant={isMobile ? "caption" : "body2"} 
-          sx={{ 
-            mb: 2, 
-            textAlign: 'center', 
-            color: '#ff6b6b',
-            px: { xs: 2, sm: 0 },
-            fontSize: { xs: '0.75rem', sm: '0.875rem' }
-          }}
-        >
-          {pressaoData.error}
-        </Typography>
-      )}
-      
-      {pressaoData.loading ? (
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          mt: { xs: 2, sm: 4 },
-          px: { xs: 2, sm: 0 }
-        }}>
-          <LinearProgress sx={{ 
-            width: { xs: '100%', sm: '300px' }, 
-            mb: 2 
-          }} />
-          <Typography sx={{ 
-            color: 'white',
-            fontSize: { xs: '0.875rem', sm: '1rem' },
-            textAlign: 'center'
-          }}>
-            Carregando dados de pressão...
-          </Typography>
-          {localizacaoStatus.obtendo && (
-            <Typography 
-              variant={isMobile ? "caption" : "body2"} 
-              sx={{ 
-                mt: 1, 
-                color: 'rgba(255, 255, 255, 0.6)',
-                fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                textAlign: 'center'
-              }}
-            >
-              Obtendo sua localização...
-            </Typography>
-          )}
-        </Box>
-      ) : (
-        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Paper sx={{
-            p: { xs: 2, sm: 3, md: 4 },
-            width: '100%',
-            maxWidth: { xs: '100%', sm: '600px', md: '800px' },
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: { xs: 1, sm: 2 },
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            margin: '0 auto'
-          }}>
-            <Typography 
-              variant={isMobile ? "body1" : "h6"} 
-              gutterBottom 
-              align="center" 
-              sx={{ 
-                width: '100%', 
-                color: 'white', 
-                mb: { xs: 2, sm: 3 },
-                fontSize: { xs: '1rem', sm: '1.25rem' }
-              }}
-            >
-              Pressão Barométrica Atual
-            </Typography>
-            
-            {/* Leitura atual da pressão */}
-            {pressaoData.pressao && (
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                mb: { xs: 2, sm: 3 }
-              }}>
-                <Typography 
-                  variant={isMobile ? "h3" : "h2"} 
-                  component="div" 
-                  sx={{ 
-                    color: 'white',
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    fontSize: { xs: '2.5rem', sm: '3rem', md: '4rem' }
-                  }}
-                >
-                  {pressaoData.pressao} mb
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        </Box>
-      )}
-      {/* Espaço adicional no final da página para evitar que o conteúdo seja cortado */}
-      <Box sx={{ height: '80px' }} />
+      {/* Resto do conteúdo do componente */}
     </Box>
   );
 }

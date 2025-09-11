@@ -53,7 +53,20 @@ export default function RifasPage() {
   // Estados
   const [rifaNumbers, setRifaNumbers] = useState<RifaNumber[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [rifas, setRifas] = useState<Rifa[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filtroStatus, setFiltroStatus] = useState<'todas' | 'ativa' | 'finalizada'>('todas');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRifa, setSelectedRifa] = useState<Rifa | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [numerosEscolhidos, setNumerosEscolhidos] = useState<number[]>([]);
+  const [openCompraDialog, setOpenCompraDialog] = useState(false);
+  const [dadosComprador, setDadosComprador] = useState({
+    nome: '',
+    telefone: '',
+    email: ''
+  });
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);

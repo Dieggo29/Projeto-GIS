@@ -18,14 +18,35 @@ if (rifaNumbers.length === 0) {
 
 export async function GET() {
   try {
-    const rifas: { id: number; titulo: string; preco: number; data_sorteio: string }[] = [
-      { id: 1, titulo: 'Rifa do Peixe Dourado', preco: 10, data_sorteio: '2024-02-15' },
-      { id: 2, titulo: 'Rifa da Vara Premium', preco: 25, data_sorteio: '2024-02-20' },
-      { id: 3, titulo: 'Rifa do Kit Completo', preco: 50, data_sorteio: '2024-02-25' }
+    const rifas: Rifa[] = [
+      {
+        id: 1,
+        titulo: 'Rifa do Peixe Dourado',
+        descricao: 'Concorra a um kit completo de pesca profissional',
+        preco: 10.00,
+        totalNumeros: 100,
+        numerosVendidos: 45,
+        dataLimite: '2024-02-15',
+        premio: 'Kit de Pesca Profissional + R$ 500',
+        imagem: '/images/rifa-peixe.jpg',
+        status: 'ativa'
+      },
+      {
+        id: 2,
+        titulo: 'Rifa da Vara Premium',
+        descricao: 'Vara de pescar carbono premium + carretilha',
+        preco: 15.00,
+        totalNumeros: 80,
+        numerosVendidos: 23,
+        dataLimite: '2024-02-20',
+        premio: 'Vara Premium + Carretilha Shimano',
+        imagem: '/images/rifa-vara.jpg',
+        status: 'ativa'
+      }
     ];
     
     return Response.json(rifas);
-  } catch (error) {
+  } catch {
     return Response.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

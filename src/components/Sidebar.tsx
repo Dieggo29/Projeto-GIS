@@ -18,10 +18,6 @@ import {
 } from '@mui/material';
 import {
   Home as HomeIcon,
-  Map as MapIcon,
-  Casino as CasinoIcon,
-  WbSunny as ClimaIcon,
-  Speed as PressaoIcon,
   Menu as MenuIcon,
   LocalOffer as LocalOfferIcon,
   SatelliteAlt as SatelliteAltIcon,
@@ -32,7 +28,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/context/SidebarContext';
 
-const drawerWidth = 280; // Aumentado para melhor usabilidade mobile
+const drawerWidth = 280;
 
 // Array menuItems sem "Atividade dos Peixes"
 const menuItems = [
