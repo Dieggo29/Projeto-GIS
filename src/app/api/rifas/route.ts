@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Simulação de banco de dados em memória (em produção, use um banco real)
-let rifaNumbers: any[] = [];
+interface RifaNumber {
+  number: number;
+  isAvailable: boolean;
+  buyerName: string | null;
+  buyerPhone: string | null;
+  purchaseDate: Date | null;
+}
 
-// Inicializar números se estiver vazio
+// Simulação de banco de dados em memória
+let rifaNumbers: RifaNumber[] = [];
+
+// Inicializar números de 1 a 100
 if (rifaNumbers.length === 0) {
-  for (let i = 0; i <= 100; i++) {
+  for (let i = 1; i <= 100; i++) {
     rifaNumbers.push({
       number: i,
       isAvailable: true,
@@ -18,41 +26,38 @@ if (rifaNumbers.length === 0) {
 
 export async function GET() {
   try {
-    const rifas: Rifa[] = [
-      {
-        id: 1,
-        titulo: 'Rifa do Peixe Dourado',
-        descricao: 'Concorra a um kit completo de pesca profissional',
-        preco: 10.00,
-        totalNumeros: 100,
-        numerosVendidos: 45,
-        dataLimite: '2024-02-15',
-        premio: 'Kit de Pesca Profissional + R$ 500',
-        imagem: '/images/rifa-peixe.jpg',
-        status: 'ativa'
-      },
-      {
-        id: 2,
-        titulo: 'Rifa da Vara Premium',
-        descricao: 'Vara de pescar carbono premium + carretilha',
-        preco: 15.00,
-        totalNumeros: 80,
-        numerosVendidos: 23,
-        dataLimite: '2024-02-20',
-        premio: 'Vara Premium + Carretilha Shimano',
-        imagem: '/images/rifa-vara.jpg',
-        status: 'ativa'
-      }
-    ];
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
     
-    return Response.json(rifas);
-  } catch {
+    if (action === 'get-numbers') {
+      return Response.json(rifaNumbers);
+    }
+    
+    // Retorna apenas estatísticas básicas
+    const numerosVendidos = rifaNumbers.filter(r => !r.isAvailable).length;
+    const numerosDisponiveis = rifaNumbers.filter(r => r.isAvailable).length;
+    
+    return Response.json({
+      totalNumeros: 100,
+      numerosVendidos,
+      numerosDisponiveis
+    });
+  } catch (error) {
+    console.error('Erro ao buscar dados:', error);
     return Response.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+    
+    if (action === 'get-numbers') {
+      return Response.json(rifaNumbers);
+    }
+    
+    // Compra de números
     const { numbers, buyerName, buyerPhone } = await request.json();
     
     // Verificar se os números ainda estão disponíveis
