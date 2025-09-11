@@ -109,7 +109,7 @@ export default function PressaoBarometricaPage() {
       
       setPressaoData({
         pressao: data.main.pressure,
-        tendencia: determinarTendencia(data.main.pressure), // Agora funcionará
+        tendencia: determinarTendencia(data.main.pressure),
         local: `${data.name}, ${data.sys.country}`,
         loading: false,
         error: null,
