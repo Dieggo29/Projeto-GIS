@@ -31,6 +31,7 @@ export default function AtividadePeixesPage() {
   const [loading, setLoading] = useState(true);
   const [local, setLocal] = useState('Carregando localização...');
   const [error, setError] = useState<string | null>(null);
+  const [localizacao, setLocalizacao] = useState<{lat: number, lon: number} | null>(null);
   
   // Estado para compatibilidade com código existente
   const [dadosAtividade, setDadosAtividade] = useState<AtividadePeixesData>({
@@ -257,24 +258,114 @@ export default function AtividadePeixesPage() {
   };
 
   // Função para obter localização
+  const buscarDadosClima = async (lat: number, lon: number): Promise<WeatherData | null> => {
+    setLoading(true);
+    const novosDados: DadosMultiplosDias = {};
+    
+    try {
+      // Buscar dados atuais (hoje)
+      const dadosHoje = await buscarDadosAtividade(latitude, longitude);
+      const hoje = new Date().toISOString().split('T')[0];
+      novosDados[hoje] = dadosHoje;
+      
+      // Buscar dados de previsão (3 dias futuros) - APENAS DA API
+      const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric&lang=pt_br`
+      );
+      
+      if (response.ok) {
+        const dados = await response.json();
+        
+        for (let i = 1; i <= 3; i++) {
+          const data = new Date();
+          data.setDate(data.getDate() + i);
+          const dataKey = data.toISOString().split('T')[0];
+          
+          const dadosDia = dados.list.filter((item: any) => 
+            item.dt_txt.startsWith(dataKey)
+          );
+          
+          if (dadosDia.length > 0) {
+            const dadosEscolhidos = dadosDia.find((item: any) => 
+              item.dt_txt.includes('12:00:00')
+            ) || dadosDia[0];
+            
+            const atividade = calcularAtividadePesca(dadosEscolhidos);
+            
+            let qualidade = 'BAIXA';
+            if (atividade >= 75) qualidade = 'EXCELENTE';
+            else if (atividade >= 50) qualidade = 'BOA';
+            else if (atividade >= 25) qualidade = 'REGULAR';
+            
+            novosDados[dataKey] = {
+              atividade,
+              qualidade,
+              fatores: {
+                pressao: { 
+                  valor: dadosEscolhidos.main.pressure, 
+                  impacto: dadosEscolhidos.main.pressure >= 1013 && dadosEscolhidos.main.pressure <= 1020 ? 'positivo' : 'negativo',
+                  peso: 0.3
+                },
+                temperatura: { 
+                  valor: dadosEscolhidos.main.temp, 
+                  impacto: dadosEscolhidos.main.temp >= 15 && dadosEscolhidos.main.temp <= 25 ? 'positivo' : 'negativo',
+                  peso: 0.2
+                },
+                vento: { 
+                  valor: dadosEscolhidos.wind.speed, 
+                  impacto: dadosEscolhidos.wind.speed >= 1.4 && dadosEscolhidos.wind.speed <= 4.2 ? 'positivo' : 'negativo',
+                  peso: 0.2
+                },
+                clima: { 
+                  condicao: dadosEscolhidos.weather[0].main, 
+                  impacto: dadosEscolhidos.weather[0].main === 'Clear' ? 'positivo' : 'negativo',
+                  peso: 0.3
+                }
+              },
+              local: `${dados.city.name}, ${dados.city.country}`,
+              loading: false,
+              error: null
+            };
+          }
+        }
+      }
+      
+      setDadosMultiplosDias(novosDados);
+      
+      // Definir dados do dia atual
+      if (novosDados[hoje]) {
+        setDadosAtividade(novosDados[hoje]);
+        setLocal(novosDados[hoje].local);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao buscar dados de múltiplos dias:', error);
+      setError('Erro ao carregar dados meteorológicos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para obter localização
   const obterLocalizacao = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position: GeolocationPosition) => {
-          const { latitude, longitude } = position.coords;
-          buscarDadosMultiplosDias(latitude, longitude);
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          setLocalizacao({ lat, lon });
+          buscarDadosMultiplosDias(lat, lon, 7);
         },
-        (error: GeolocationPositionError) => {
+        (error) => {
           console.error('Erro ao obter localização:', error);
-          // Usar coordenadas padrão (Curitiba)
-          buscarDadosMultiplosDias(-25.4284, -49.2733);
+          setErro('Não foi possível obter sua localização');
         }
       );
     } else {
-      // Usar coordenadas padrão (Curitiba)
-      buscarDadosMultiplosDias(-25.4284, -49.2733);
+      setErro('Geolocalização não é suportada neste navegador');
     }
-  }, []);
+  }, [buscarDadosMultiplosDias]);
 
   useEffect(() => {
     obterLocalizacao();

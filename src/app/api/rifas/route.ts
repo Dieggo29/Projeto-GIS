@@ -17,7 +17,28 @@ if (rifaNumbers.length === 0) {
 }
 
 export async function GET() {
-  return NextResponse.json({ numbers: rifaNumbers });
+  try {
+    const rifas: Rifa[] = [
+      {
+        id: 1,
+        titulo: "Rifa do Peixe Dourado",
+        descricao: "Concorra a um kit completo de pesca!",
+        preco: 10.00,
+        totalNumeros: 100,
+        numerosSorteados: [],
+        dataLimite: "2024-12-31",
+        imagem: "/images/rifa-peixe.jpg"
+      }
+    ];
+    
+    return NextResponse.json(rifas);
+  } catch (error) {
+    console.error('Erro ao buscar rifas:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

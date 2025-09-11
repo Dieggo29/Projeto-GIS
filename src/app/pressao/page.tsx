@@ -74,7 +74,7 @@ export default function PressaoBarometricaPage() {
   };
   
   // Função para buscar dados de pressão barométrica com base na localização
-  const buscarDadosPressao = async (latitude: number, longitude: number) => {
+  const buscarDadosPressao = async (lat: number, lon: number): Promise<void> => {
     setPressaoData(prev => ({ ...prev, loading: true, error: null }));
     
     try {
@@ -85,7 +85,7 @@ export default function PressaoBarometricaPage() {
       }
       
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric&lang=pt_br`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=pt_br`
       );
       
       if (!response.ok) {
@@ -96,12 +96,12 @@ export default function PressaoBarometricaPage() {
       
       setPressaoData({
         pressao: data.main.pressure,
-        tendencia: determinarTendencia(data.main.pressure), // Agora funcionará
+        tendencia: determinarTendencia(data.main.pressure),
         local: `${data.name}, ${data.sys.country}`,
         loading: false,
         error: null,
-        latitude,
-        longitude
+        latitude: lat,
+        longitude: lon
       });
     } catch (error) {
       console.error('Erro ao buscar dados de pressão:', error);
@@ -109,7 +109,7 @@ export default function PressaoBarometricaPage() {
         ...prev, 
         loading: false, 
         error: `Erro ao carregar dados: ${error.message}`,
-        local: `Localização (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+        local: `Localização (${lat.toFixed(4)}, ${lon.toFixed(4)})`
       }));
     }
   };
