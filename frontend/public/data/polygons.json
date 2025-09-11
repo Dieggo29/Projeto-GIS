@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Curitiba",
+    "id": "CWB",
+    "geoJsonPath": "/data/curitiba_real.geojson"
+  },
+  {
+    "name": "Brasil",
+    "id": "MEU_POLIGONO",
+    "geoJsonPath": "/data/meu_poligono.geojson"
+  }
+]

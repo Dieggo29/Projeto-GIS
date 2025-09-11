@@ -1,0 +1,24 @@
+
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Curitiba"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-49.2399, -25.3533],
+            [-49.3752, -25.3934],
+            [-49.3328, -25.5605],
+            [-49.1915, -25.5181],
+            [-49.2399, -25.3533]
+          ]
+        ]
+      }
+    }
+  ]
+}
