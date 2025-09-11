@@ -5,6 +5,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, ThemeProvider, createTheme, Button, CircularProgress, Checkbox, ListItemText, ToggleButtonGroup, ToggleButton, Typography, Switch, FormControlLabel } from '@mui/material';
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -46,7 +47,7 @@ export default function Map() {
     }
   };
 
-  const loadMultiplePolygons = async (paths: string[]) => {
+  const loadMultiplePolygons = useCallback(async () => {
     if (!map.current || paths.length === 0 || !isMapLoaded) {
       removePolygon();
       return;

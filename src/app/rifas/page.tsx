@@ -2,25 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Container,
   Typography,
-  Paper,
+  Box,
+  Card,
+  CardContent,
   Grid,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Chip,
-  Alert,
-  useTheme,
-  useMediaQuery,
-  Fab,
-  Badge,
-  Tooltip,
-  styled
+  Button
 } from '@mui/material';
 import {
   ShoppingCart,

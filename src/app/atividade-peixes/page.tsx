@@ -257,14 +257,14 @@ export default function AtividadePeixesPage() {
   };
 
   // Função para obter localização
-  const obterLocalizacao = () => {
+  const obterLocalizacao = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (position: GeolocationPosition) => {
           const { latitude, longitude } = position.coords;
           buscarDadosMultiplosDias(latitude, longitude);
         },
-        (error) => {
+        (error: GeolocationPositionError) => {
           console.error('Erro ao obter localização:', error);
           // Usar coordenadas padrão (Curitiba)
           buscarDadosMultiplosDias(-25.4284, -49.2733);
@@ -274,11 +274,11 @@ export default function AtividadePeixesPage() {
       // Usar coordenadas padrão (Curitiba)
       buscarDadosMultiplosDias(-25.4284, -49.2733);
     }
-  };
+  }, []);
 
   useEffect(() => {
     obterLocalizacao();
-  }, []);
+  }, [obterLocalizacao]);
 
   // Função para formatar condição climática
   const formatarCondicaoClimatica = (condicao: string) => {

@@ -20,7 +20,7 @@ export async function GET() {
   return NextResponse.json({ numbers: rifaNumbers });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { numbers, buyerName, buyerPhone } = await request.json();
     
@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json({ success: true, message: 'Números reservados com sucesso!' });
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Erro ao processar rifas:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

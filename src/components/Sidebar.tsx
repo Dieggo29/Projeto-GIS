@@ -2,8 +2,25 @@
 'use client';
 
 import React from 'react';
-import { Drawer, Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Button, IconButton, Typography, useTheme, useMediaQuery } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Box
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Home as HomeIcon,
+  TrendingUp as TrendingUpIcon,
+  Speed as SpeedIcon
+} from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '@/context/SidebarContext';

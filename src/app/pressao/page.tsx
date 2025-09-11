@@ -33,51 +33,38 @@ export default function PressaoBarometricaPage() {
   const [mostrarAnalisePesca, setMostrarAnalisePesca] = useState(false);
 
   // Função para obter a localização do usuário
-  const obterLocalizacao = () => {
-    setLocalizacaoStatus({
-      solicitada: true,
-      obtendo: true,
-      erro: null
-    });
-    
-    if (!navigator.geolocation) {
-      setLocalizacaoStatus({
-        solicitada: true,
-        obtendo: false,
-        erro: 'Geolocalização não é suportada pelo seu navegador.'
-      });
-      return;
+  const obterLocalizacao = useCallback(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setPressaoData(prev => ({
+            ...prev,
+            latitude,
+            longitude
+          }));
+          setLocalizacaoStatus({
+            solicitada: true,
+            obtendo: false,
+            erro: null
+          });
+          buscarDadosPressao(latitude, longitude);
+        },
+        (error) => {
+          setLocalizacaoStatus({
+            solicitada: true,
+            obtendo: false,
+            erro: `Erro ao obter localização: ${error.message}`
+          });
+          // Em caso de erro, usar localização padrão (Curitiba)
+          const latitudePadrao = -25.428;
+          const longitudePadrao = -49.273;
+          buscarDadosPressao(latitudePadrao, longitudePadrao);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
     }
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setPressaoData(prev => ({
-          ...prev,
-          latitude,
-          longitude
-        }));
-        setLocalizacaoStatus({
-          solicitada: true,
-          obtendo: false,
-          erro: null
-        });
-        buscarDadosPressao(latitude, longitude);
-      },
-      (error) => {
-        setLocalizacaoStatus({
-          solicitada: true,
-          obtendo: false,
-          erro: `Erro ao obter localização: ${error.message}`
-        });
-        // Em caso de erro, usar localização padrão (Curitiba)
-        const latitudePadrao = -25.428;
-        const longitudePadrao = -49.273;
-        buscarDadosPressao(latitudePadrao, longitudePadrao);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
-  };
+  }, []);
   
   // Adicione esta função DENTRO do componente, antes da função buscarDadosPressao
   const determinarTendencia = (pressao: number): string => {
@@ -130,7 +117,7 @@ export default function PressaoBarometricaPage() {
   useEffect(() => {
     // Solicita localização automaticamente ao carregar a página
     obterLocalizacao();
-  }, []);
+  }, [obterLocalizacao]);
 
   // Função para determinar a cor baseada na pressão
   const getPressaoColor = (pressao: number | null): string => {
