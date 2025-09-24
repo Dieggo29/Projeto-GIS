@@ -1,118 +1,91 @@
-# Dependências
 /node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
 
-# Arquivos de produção
 /build
 /.next/
 /out/
 
-# Arquivos de desenvolvimento
 .env*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Variáveis de ambiente (IMPORTANTE: Protege suas API keys)
 .env
 .env.local
 .env.development
 .env.test
 .env.production
 
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Arquivos de runtime
 *.pid
 *.seed
 *.pid.lock
 
-# Diretório de cobertura gerado por ferramentas como istanbul
 coverage/
 *.lcov
 
-# Diretório de instrumentação nyc
 .nyc_output
 
-# Dependency directories
 node_modules/
 jspm_packages/
 
-# Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
-# TypeScript cache
 *.tsbuildinfo
 
-# Cache do npm
 .npm
 
-# Cache do Yarn
 .yarn-integrity
 
-# dotenv environment variable files
 .env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
 
-# Cache do parcel-bundler
 .cache
 .parcel-cache
 
-# Cache do Next.js
 .next
 .swc
 
-# Cache do Nuxt.js
 .nuxt
 dist
 
-# Cache do Gatsby
 .cache/
 public
 
-# Arquivos de build do Vuepress
 .vuepress/dist
 
-# Arquivos temporários do Serverless
 .serverless/
 
-# Arquivos do FuseBox
 .fusebox/
 
-# Arquivos locais do DynamoDB
 .dynamodb/
 
-# Arquivo de porta do TernJS
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# Arquivos do yarn v2
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
 
-# IDEs e editores
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Arquivos do sistema operacional
 .DS_Store
 .DS_Store?
 ._*
@@ -121,57 +94,38 @@ public
 ehthumbs.db
 Thumbs.db
 
-# Arquivos específicos do Windows
 *.lnk
 
-# Arquivos específicos do Linux
 *~
 
-# Arquivos específicos do macOS
 .AppleDouble
 .LSOverride
 
-# Arquivos de backup
 *.bak
 *.backup
 *.old
 *.orig
 
-# Arquivos temporários
 *.tmp
 *.temp
 
-# Arquivos de configuração local
 config.local.js
 config.local.json
 
-# Chaves e certificados
 *.pem
 *.key
 *.crt
 *.p12
 *.pfx
 
-# Arquivos de banco de dados local
 *.db
 *.sqlite
 *.sqlite3
 
-# Arquivos de upload
 uploads/
 temp/
 
-# Arquivos de teste
 test-results/
 coverage/
 
-# Arquivos do Docker (se não quiser versionar)
-# docker-compose.override.yml
-
-# Arquivos específicos do projeto
-# Descomente se não quiser versionar estes arquivos
-# public/data/*.geojson
-# scripts/
-
-# Arquivos de configuração sensíveis
 .env.example
