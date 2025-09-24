@@ -1,17 +1,34 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, // Habilitado para detectar problemas
+  output: 'standalone',
+  images: {
+    unoptimized: true, // Para deploy estático
+  },
+  trailingSlash: true,
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  // Configurações para deploy no Vercel
-  images: {
-    domains: ['api.openweathermap.org'],
-  },
-  // Otimizações para produção
-  swcMinify: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+  // PWA configuration
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ];
   },
 };
 

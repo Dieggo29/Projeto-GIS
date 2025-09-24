@@ -18,8 +18,8 @@ export default function ClimaPage() {
     const obterLocalizacao = () => {
       if (!navigator.geolocation) {
         setErro('Geolocalização não é suportada pelo seu navegador');
-        // Fallback para Curitiba
-        setLocalizacao({ latitude: -25.428, longitude: -49.273 });
+        // Fallback para Brasil centralizado
+        setLocalizacao({ latitude: -15.7801, longitude: -47.9292 });
         setCarregando(false);
         return;
       }
@@ -35,8 +35,8 @@ export default function ClimaPage() {
         (error) => {
           console.error('Erro ao obter localização:', error);
           setErro('Não foi possível obter sua localização');
-          // Fallback para Curitiba
-          setLocalizacao({ latitude: -25.428, longitude: -49.273 });
+          // Fallback para Brasil centralizado
+          setLocalizacao({ latitude: -15.7801, longitude: -47.9292 });
           setCarregando(false);
         },
         {
@@ -58,10 +58,17 @@ export default function ClimaPage() {
         alignItems: 'center', 
         justifyContent: 'center', 
         height: '100%',
-        gap: 2
+        gap: 2,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white'
       }}>
-        <CircularProgress />
-        <Typography>Obtendo sua localização...</Typography>
+        <CircularProgress sx={{ color: '#7CB342' }} />
+        <Typography sx={{ color: '#7CB342', fontWeight: 'bold' }}>
+          Obtendo sua localização...
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+          Permita o acesso à localização para ver o clima da sua região
+        </Typography>
       </Box>
     );
   }
@@ -74,49 +81,63 @@ export default function ClimaPage() {
         alignItems: 'center', 
         justifyContent: 'center', 
         height: '100%',
-        gap: 2
+        gap: 2,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white',
+        p: 3
       }}>
-        <Typography color="error">Erro ao obter localização</Typography>
-        <Typography variant="body2">Usando localização padrão (Curitiba)</Typography>
+        <Typography color="error" variant="h6">
+          Erro ao obter localização
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center' }}>
+          Mostrando mapa geral do Brasil
+        </Typography>
       </Box>
     );
   }
 
   return (
-    // Container principal com layout de coluna, ocupando 100% da altura
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', 
+      width: '100%',
+      position: 'relative'
+    }}>
       
-      {/* Mensagem de localização */}
+      {/* Indicador de localização */}
       {erro && (
-        <Box sx={{ p: 1, backgroundColor: 'warning.light', color: 'warning.contrastText' }}>
+        <Box sx={{ 
+          position: 'absolute',
+          top: 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          backgroundColor: 'rgba(255, 152, 0, 0.9)',
+          color: 'white',
+          px: 3,
+          py: 1,
+          borderRadius: 2,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+        }}>
           <Typography variant="body2" align="center">
-            {erro} - Usando localização padrão (Curitiba)
+            {erro} - Mostrando mapa geral
           </Typography>
         </Box>
       )}
       
-      {/* --- SEÇÃO 1: O MAPA GRANDE DO WINDY (Baseado na localização atual) --- */}
-      <Box sx={{ flex: 1, minHeight: 0 }}>
+      {/* Mapa do Windy baseado na localização do usuário */}
+      <Box sx={{ 
+        flex: 1, 
+        minHeight: 0,
+        width: '100%',
+        height: '100%'
+      }}>
         <iframe
           width="100%"
           height="100%"
-          src={`https://embed.windy.com/embed.html?type=map&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&lat=${localizacao.latitude}&lon=${localizacao.longitude}`}
+          src={`https://embed.windy.com/embed.html?type=map&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&lat=${localizacao.latitude}&lon=${localizacao.longitude}&zoom=10&overlay=wind`}
           frameBorder="0"
-        ></iframe>
-      </Box>
-
-      {/* --- SEÇÃO 2: A BARRA DE PREVISÃO DO TEMPO (Baseada na localização atual) --- */}
-      <Box sx={{ height: 'auto', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-        {/* Este é o iframe com previsão baseada na localização do usuário */}
-        <iframe
-          loading="lazy"
-          style={{ 
-            border: "none", 
-            width: "100%", 
-            height: "230px",
-            marginBottom: "-30px" /* Remove a tarja cinza escondendo a parte inferior */
-          }}
-          src={`https://embed.windy.com/embed.html?type=forecast&location=coordinates&lat=${localizacao.latitude}&lon=${localizacao.longitude}&detailLat=${localizacao.latitude}&detailLon=${localizacao.longitude}&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`}
         ></iframe>
       </Box>
 

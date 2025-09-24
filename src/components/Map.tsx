@@ -4,9 +4,27 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, ThemeProvider, createTheme, Button, CircularProgress, Checkbox, ListItemText, ToggleButtonGroup, ToggleButton, Switch, FormControlLabel } from '@mui/material';
-
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+import {
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  Select,
+  Switch,
+  ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  createTheme
+} from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
+import { apiService } from '@/services/api';
+import { useSidebar } from '@/context/SidebarContext';
 
 const darkTheme = createTheme({ palette: { mode: 'dark' } });
 
@@ -17,193 +35,305 @@ interface Place {
 }
 
 export default function Map() {
-  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
   const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [pitch, setPitch] = useState(0);
-  const [isSpinning, setIsSpinning] = useState(false);
   const [showWaterLayer, setShowWaterLayer] = useState(false);
   const [manualPitchChange, setManualPitchChange] = useState(false);
+  const [loadedSources, setLoadedSources] = useState<Set<string>>(new Set());
   const animationFrameId = useRef<number | null>(null);
+  
+  // Usar o contexto da sidebar para detectar mudanças
+  const { isSidebarOpen } = useSidebar();
 
+  // Carregar configurações do backend
   useEffect(() => {
-    fetch('/data/polygons.json')
-      .then(res => res.json())
-      .then(data => {
-        setPlaces(data);
-      })
-      .catch(error => {
-        console.error('Erro ao carregar dados dos polígonos:', error);
-      });
+    const loadConfig = async () => {
+      try {
+        const config = await apiService.getPublicConfig();
+        if (config.mapbox?.accessToken) {
+          mapboxgl.accessToken = config.mapbox.accessToken;
+          setConfigLoaded(true);
+        } else {
+          console.error('Token do Mapbox não encontrado na configuração');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+      }
+    };
+
+    loadConfig();
   }, []);
 
-  const removePolygon = useCallback(() => {
-    if (!map.current || !isMapLoaded) return;
-    const currentMap = map.current;
-    if (currentMap.getSource('polygon-source')) {
-      if (currentMap.getLayer('polygon-layer')) currentMap.removeLayer('polygon-layer');
-      if (currentMap.getLayer('polygon-outline')) currentMap.removeLayer('polygon-outline');
-      currentMap.removeSource('polygon-source');
-    }
-  }, [isMapLoaded]);
-
-  const loadMultiplePolygons = useCallback(async (paths: string[]) => {
-    if (!map.current || paths.length === 0 || !isMapLoaded) {
-      removePolygon();
-      return;
-    }
-    
-    const currentMap = map.current;
-    removePolygon();
-
-    try {
-      const responses = await Promise.all(paths.map(path => fetch(path).then(res => res.json())));
-      const allFeatures = responses.flatMap(data => data.features);
-      const combinedGeoJson = { type: 'FeatureCollection', features: allFeatures };
-
-      currentMap.addSource('polygon-source', { type: 'geojson', data: combinedGeoJson });
-      currentMap.addLayer({
-        id: 'polygon-layer', 
-        type: 'fill', 
-        source: 'polygon-source',
-        paint: { 'fill-color': '#0080ff', 'fill-opacity': 0.5 }
-      });
-      currentMap.addLayer({
-        id: 'polygon-outline', 
-        type: 'line', 
-        source: 'polygon-source',
-        paint: { 'line-color': '#000', 'line-width': 2 }
-      });
-
-      if (allFeatures.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        allFeatures.forEach(feature => {
-          const coords = feature.geometry.coordinates;
-          if (feature.geometry.type === 'Polygon') {
-            coords[0].forEach((coord: number[]) => bounds.extend(coord as mapboxgl.LngLatLike));
-          } else if (feature.geometry.type === 'MultiPolygon') {
-            coords.forEach((polygon: number[][][]) => 
-              polygon[0].forEach((coord: number[]) => bounds.extend(coord as mapboxgl.LngLatLike))
-            );
-          }
-        });
-        currentMap.fitBounds(bounds, { padding: 80, duration: 1500 });
+  // Carregar locais disponíveis
+  useEffect(() => {
+    const loadPlaces = async () => {
+      try {
+        const response = await fetch('/data/locations.json');
+        const data = await response.json();
+        
+        // Extrair todos os locais da estrutura hierárquica
+        const allPlaces: Place[] = [];
+        
+        // Adicionar países
+        if (data.countries) {
+          data.countries.forEach((country: any) => {
+            allPlaces.push({
+              name: country.name,
+              id: country.id,
+              geoJsonPath: country.geoJsonPath
+            });
+            
+            // Adicionar estados
+            if (country.states) {
+              country.states.forEach((state: any) => {
+                allPlaces.push({
+                  name: state.name,
+                  id: state.id,
+                  geoJsonPath: state.geoJsonPath
+                });
+                
+                // Adicionar cidades
+                if (state.cities) {
+                  state.cities.forEach((city: any) => {
+                    allPlaces.push({
+                      name: city.name,
+                      id: city.id,
+                      geoJsonPath: city.geoJsonPath
+                    });
+                  });
+                }
+              });
+            }
+          });
+        }
+        
+        setPlaces(allPlaces);
+      } catch (error) {
+        console.error('Erro ao carregar locais:', error);
       }
-    } catch (error) {
-      console.error("Ocorreu um erro ao carregar os polígonos: ", error);
-    }
-  }, [isMapLoaded, removePolygon]);
-  
+    };
+
+    loadPlaces();
+  }, []);
+
+  // Redimensionar mapa quando sidebar abre/fecha
   useEffect(() => {
-    if (!isMapLoaded || places.length === 0) return;
-    
-    if (selectedPlaces.length === 0) {
-      setIsSpinning(false);
-      removePolygon();
-      return;
+    if (map.current) {
+      const timer = setTimeout(() => {
+        map.current?.resize();
+      }, 300); // Aguarda a animação da sidebar terminar
+
+      return () => clearTimeout(timer);
     }
-    
-    const pathsToLoad = selectedPlaces
-      .map(id => places.find(p => p.id === id)?.geoJsonPath)
-      .filter((path): path is string => !!path);
-    
-    loadMultiplePolygons(pathsToLoad);
-  }, [selectedPlaces, isMapLoaded, places, loadMultiplePolygons, removePolygon]);
-  
-  useEffect(() => {
-    const mapInstance = map.current;
-    if (!isMapLoaded || !mapInstance) return;
-    
-    const layerId = 'highlighted-water';
-    if (showWaterLayer && !mapInstance.getLayer(layerId)) {
-      mapInstance.addLayer({
-        'id': layerId, 
-        'type': 'fill', 
-        'source': 'composite',
-        'source-layer': 'water', 
-        'filter': ['==', '$type', 'Polygon'],
-        'paint': { 'fill-color': '#00BFFF', 'fill-opacity': 0.7 }
-      });
-    } else if (!showWaterLayer && mapInstance.getLayer(layerId)) {
-      mapInstance.removeLayer(layerId);
-    }
-  }, [showWaterLayer, isMapLoaded]);
+  }, [isSidebarOpen]);
 
   const handlePlaceChange = (event: SelectChangeEvent<typeof selectedPlaces>) => {
-    const { target: { value } } = event;
-    setIsSpinning(false);
+    const value = event.target.value;
     setSelectedPlaces(typeof value === 'string' ? value.split(',') : value);
   };
-  
+
   const handleClear = () => {
-    if (!map.current || !isMapLoaded) return;
     setSelectedPlaces([]);
-    setIsSpinning(false);
-    removePolygon();
-    map.current?.flyTo({ 
-      center: [-50.0, -15.5], 
-      zoom: 3.5, 
-      pitch: 0, 
-      bearing: 0, 
-      duration: 2000 
-    });
-    setPitch(0);
+    if (map.current) {
+      const sources = map.current.getStyle().sources;
+      Object.keys(sources).forEach(sourceId => {
+        if (sourceId.startsWith('place-')) {
+          if (map.current?.getLayer(`${sourceId}-fill`)) {
+            map.current.removeLayer(`${sourceId}-fill`);
+          }
+          if (map.current?.getLayer(`${sourceId}-line`)) {
+            map.current.removeLayer(`${sourceId}-line`);
+          }
+          if (map.current?.getSource(sourceId)) {
+            map.current.removeSource(sourceId);
+          }
+        }
+      });
+    }
   };
 
   const handlePitchChange = (event: React.MouseEvent<HTMLElement>, newPitch: number | null) => {
     if (newPitch !== null && map.current) {
-      setManualPitchChange(true);
       setPitch(newPitch);
-      
-      if (isSpinning) {
-        map.current.easeTo({ pitch: newPitch, duration: 500 });
-      } else {
-        map.current.easeTo({ pitch: newPitch, duration: 1000 });
-      }
-      
-      setTimeout(() => {
-        setManualPitchChange(false);
-      }, isSpinning ? 600 : 1100);
+      setManualPitchChange(true);
+      map.current.easeTo({ pitch: newPitch, duration: 1000 });
+      setTimeout(() => setManualPitchChange(false), 1100);
     }
   };
 
-  const spinGlobe = useCallback(() => {
-    const mapInstance = map.current;
-    if (!mapInstance || manualPitchChange) return;
-    const currentBearing = mapInstance.getBearing();
-    mapInstance.setBearing(currentBearing + 0.1);
-    animationFrameId.current = requestAnimationFrame(spinGlobe);
-  }, [manualPitchChange]);
+  // Função para resetar o mapa
+  const resetMap = () => {
+    if (!map.current) return;
+    
+    map.current.easeTo({
+      center: [-54.0, -15.0], // Centro do Brasil
+      zoom: 4,
+      pitch: 0,
+      bearing: 0,
+      duration: 1500
+    });
+    
+    setPitch(0);
+  };
 
-  useEffect(() => {
-    if (isSpinning) {
-      animationFrameId.current = requestAnimationFrame(spinGlobe);
-    } else {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    }
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
+  // Função para calcular o centro e bounds de um GeoJSON
+  const calculateBounds = (geoJsonData: any) => {
+    const coordinates = geoJsonData.features[0].geometry.coordinates[0];
+    let minLng = Infinity, maxLng = -Infinity;
+    let minLat = Infinity, maxLat = -Infinity;
+
+    coordinates.forEach(([lng, lat]: [number, number]) => {
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+    });
+
+    return {
+      center: [(minLng + maxLng) / 2, (minLat + maxLat) / 2] as [number, number],
+      bounds: [[minLng, minLat], [maxLng, maxLat]] as [[number, number], [number, number]]
     };
-  }, [isSpinning, spinGlobe]);
+  };
 
+  // Carregar GeoJSON quando lugares são selecionados
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    let isCancelled = false;
+    const timeoutId = setTimeout(async () => {
+      if (isCancelled) return;
+
+      const loadSelectedPlaces = async () => {
+        if (!map.current || isCancelled) return;
+
+        // Coletar sources atuais
+        const currentSources = new Set<string>();
+        try {
+          const style = map.current.getStyle();
+          if (style?.sources) {
+            Object.keys(style.sources).forEach(sourceId => {
+              if (sourceId.startsWith('place-')) {
+                currentSources.add(sourceId);
+              }
+            });
+          }
+        } catch (error) {
+          // Ignorar erros de estilo durante transições
+          return;
+        }
+
+        // Remover sources não utilizados
+        for (const sourceId of currentSources) {
+          if (isCancelled) return;
+          
+          const placeId = sourceId.replace('place-', '');
+          if (!selectedPlaces.includes(placeId)) {
+            try {
+              if (map.current?.getLayer(`${sourceId}-fill`)) {
+                map.current.removeLayer(`${sourceId}-fill`);
+              }
+              if (map.current?.getLayer(`${sourceId}-line`)) {
+                map.current.removeLayer(`${sourceId}-line`);
+              }
+              if (map.current?.getSource(sourceId)) {
+                map.current.removeSource(sourceId);
+              }
+            } catch (error) {
+              // Ignorar erros durante remoção
+            }
+          }
+        }
+
+        // Adicionar novos sources
+        for (const placeId of selectedPlaces) {
+          if (isCancelled) return;
+          
+          const place = places.find(p => p.id === placeId);
+          if (!place) continue;
+
+          const sourceId = `place-${placeId}`;
+          
+          // Verificação tripla para evitar duplicatas
+          try {
+            if (map.current?.getSource(sourceId)) continue;
+          } catch (error) {
+            // Source pode não existir ainda
+          }
+
+          try {
+            const response = await fetch(place.geoJsonPath);
+            if (isCancelled) return;
+            
+            const geoJsonData = await response.json();
+            if (isCancelled) return;
+            
+            // Verificar novamente antes de adicionar
+            if (map.current && !map.current.getSource(sourceId)) {
+              map.current.addSource(sourceId, {
+                type: 'geojson',
+                data: geoJsonData
+              });
+
+              map.current.addLayer({
+                id: `${sourceId}-fill`,
+                type: 'fill',
+                source: sourceId,
+                paint: {
+                  'fill-color': '#7CB342',
+                  'fill-opacity': 0.3
+                }
+              });
+
+              map.current.addLayer({
+                id: `${sourceId}-line`,
+                type: 'line',
+                source: sourceId,
+                paint: {
+                  'line-color': '#7CB342',
+                  'line-width': 2
+                }
+              });
+
+              // Calcular bounds
+              const bounds = calculateBounds(geoJsonData);
+              if (bounds && map.current) {
+                map.current.fitBounds(bounds.bounds, {
+                  padding: 50,
+                  duration: 1500
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Erro ao carregar GeoJSON para ${place.name}:`, error);
+          }
+        }
+      };
+
+      await loadSelectedPlaces();
+    }, 100); // Debounce de 100ms
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [selectedPlaces, places, isMapLoaded]);
   useEffect(() => {
     if (map.current) return;
     if (!mapContainer.current) return;
+    if (!configLoaded) return;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [-49.27, -25.42], 
-      zoom: 10, 
+      center: [-54.0, -15.0], // Centro aproximado do Brasil
+      zoom: 4, // Zoom mais amplo para mostrar o Brasil inteiro
       pitch: 0, 
-      bearing: -17.6,
+      bearing: 0,
     });
     
     const resizeObserver = new ResizeObserver(() => map.current?.resize());
@@ -212,10 +342,8 @@ export default function Map() {
     map.current.on('load', () => {
       setIsMapLoaded(true);
       map.current?.addSource('mapbox-dem', {
-        'type': 'raster-dem', 
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512, 
-        'maxzoom': 14
+        'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512, 'maxzoom': 14
       });
       map.current?.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
     });
@@ -226,104 +354,270 @@ export default function Map() {
       map.current = null;
       setIsMapLoaded(false);
     };
+  }, [configLoaded]);
+
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    selectedPlaces.forEach(async (placeId) => {
+      const place = places.find(p => p.id === placeId);
+      if (!place) return;
+
+      const sourceId = `place-${placeId}`;
+      
+      if (map.current?.getSource(sourceId)) return;
+
+      try {
+        const response = await fetch(place.geoJsonPath);
+        const geoJsonData = await response.json();
+        
+        if (map.current) {
+          map.current.addSource(sourceId, {
+            type: 'geojson',
+            data: geoJsonData
+          });
+
+          map.current.addLayer({
+            id: `${sourceId}-fill`,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+              'fill-color': '#7CB342',
+              'fill-opacity': 0.3
+            }
+          });
+
+          map.current.addLayer({
+            id: `${sourceId}-line`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+              'line-color': '#7CB342',
+              'line-width': 2
+            }
+          });
+
+          const bounds = new mapboxgl.LngLatBounds();
+          if (geoJsonData.features) {
+            geoJsonData.features.forEach((feature: any) => {
+              if (feature.geometry.type === 'Polygon') {
+                feature.geometry.coordinates[0].forEach((coord: [number, number]) => {
+                  bounds.extend(coord);
+                });
+              }
+            });
+            map.current.fitBounds(bounds, { padding: 50 });
+          }
+        }
+      } catch (error) {
+        console.error(`Erro ao carregar GeoJSON para ${place.name}:`, error);
+      }
+    });
+  }, [selectedPlaces, places, isMapLoaded]);
+
+  // Efeito para controlar a camada de água
+  useEffect(() => {
+    if (!map.current || !isMapLoaded) return;
+
+    if (showWaterLayer) {
+      // Verificar se o source já existe
+      if (!map.current.getSource('water-source')) {
+        map.current.addSource('water-source', {
+          type: 'vector',
+          url: 'mapbox://mapbox.mapbox-streets-v8'
+        });
+      }
+
+      // Verificar se a layer já existe
+      if (!map.current.getLayer('water-layer')) {
+        map.current.addLayer({
+          id: 'water-layer',
+          type: 'fill',
+          source: 'water-source',
+          'source-layer': 'water',
+          paint: {
+            'fill-color': '#4A90E2',
+            'fill-opacity': 0.6
+          }
+        });
+      }
+    } else {
+      // Remover layer primeiro
+      if (map.current.getLayer('water-layer')) {
+        map.current.removeLayer('water-layer');
+      }
+      // Depois remover source
+      if (map.current.getSource('water-source')) {
+        map.current.removeSource('water-source');
+      }
+    }
+  }, [showWaterLayer, isMapLoaded]);
+
+  // Limpar animação quando componente desmonta
+  useEffect(() => {
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
   }, []);
 
+  useEffect(() => {
+    if (map.current) return;
+    if (!mapContainer.current) return;
+    if (!configLoaded) return;
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [-49.27, -25.42], zoom: 10, pitch: 0, bearing: -17.6,
+    });
+    
+    const resizeObserver = new ResizeObserver(() => map.current?.resize());
+    resizeObserver.observe(mapContainer.current);
+
+    map.current.on('load', () => {
+      setIsMapLoaded(true);
+      map.current?.addSource('mapbox-dem', {
+        'type': 'raster-dem', 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512, 'maxzoom': 14
+      });
+      map.current?.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+      map.current?.remove();
+      map.current = null;
+      setIsMapLoaded(false);
+    };
+  }, [configLoaded]);
+
   return (
-    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+    <div style={{ 
+      position: 'relative', 
+      height: '100vh', 
+      width: '100%',
+      overflow: 'hidden'
+    }}>
       <ThemeProvider theme={darkTheme}>
-        
-        {/* PAINEL DE FILTRO CENTRAL */}
-        <Box 
+        {/* PAINEL DE SELEÇÃO DE LOCAL - CENTRALIZADO NO TOPO */}
+        <Box
           sx={{
-            position: 'absolute', 
-            top: '10%', 
+            position: 'absolute',
+            top: 20,
             left: '50%',
-            transform: 'translateX(-50%)', 
-            minWidth: 240, 
-            zIndex: 1,
-            backgroundColor: 'rgba(46, 46, 46, 0.9)', 
-            backdropFilter: 'blur(10px)',
-            color: 'white', 
-            padding: 2, 
-            borderRadius: 2
-          }}>
-          {!isMapLoaded && (
-            <CircularProgress 
-              size={24} 
-              color="inherit" 
-              sx={{ display: 'block', margin: 'auto' }} 
-            />
-          )}
-          <FormControl fullWidth disabled={!isMapLoaded}>
-            <InputLabel id="multiple-checkbox-label">Selecionar Local</InputLabel>
-            <Select 
-              labelId="multiple-checkbox-label"
-              multiple 
-              value={selectedPlaces} 
-              onChange={handlePlaceChange}
-              renderValue={(selected) => 
-                selected.map(id => places.find(p => p.id === id)?.name).join(', ')
-              }
-              label="Selecionar Local"
-            >
-              {places.map((place) => (
-                <MenuItem key={place.id} value={place.id}>
-                  <Checkbox checked={selectedPlaces.indexOf(place.id) > -1} />
-                  <ListItemText primary={place.name} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            minWidth: 300,
+            maxWidth: 400,
+          }}
+        >
+          <Box 
+            sx={{
+              backgroundColor: 'rgba(46, 46, 46, 0.7)', 
+              backdropFilter: 'blur(15px)',
+              color: 'white', 
+              padding: 2, 
+              borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            {!isMapLoaded && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <CircularProgress size={24} color="inherit" />
+              </Box>
+            )}
+            <FormControl fullWidth disabled={!isMapLoaded}>
+              <InputLabel id="multiple-checkbox-label" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                Selecionar Local
+              </InputLabel>
+              <Select 
+                labelId="multiple-checkbox-label"
+                multiple 
+                value={selectedPlaces} 
+                onChange={handlePlaceChange}
+                renderValue={(selected) => selected.map(id => places.find(p => p.id === id)?.name).join(', ')}
+                label="Selecionar Local"
+                sx={{
+                  color: 'white',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.3)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#7CB342',
+                  },
+                }}
+              >
+                {places.map((place) => (
+                  <MenuItem key={place.id} value={place.id}>
+                    <Checkbox checked={selectedPlaces.indexOf(place.id) > -1} />
+                    <ListItemText primary={place.name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
-        {/* CONTAINER PARA OS CONTROLES DA DIREITA */}
+        {/* CONTROLES LATERAIS DIREITOS */}
         <Box
           sx={{
             position: 'absolute',
             top: 20,
             right: 20,
-            zIndex: 1,
+            zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            maxWidth: 200,
           }}
         >
-          {/* Caixa 1: Controles da Câmera */}
+          {/* Controles da Câmera */}
           <Box
             sx={{
-              backgroundColor: 'rgba(46, 46, 46, 0.9)', 
-              backdropFilter: 'blur(10px)',
-              padding: 1, 
+              backgroundColor: 'rgba(46, 46, 46, 0.7)', 
+              backdropFilter: 'blur(15px)',
+              padding: 2, 
               borderRadius: 2, 
               display: 'flex',
               flexDirection: 'column', 
-              gap: 1, 
-              alignItems: 'stretch',
+              gap: 1.5,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
             }}
           >
+            <Typography variant="subtitle2" sx={{ color: '#7CB342', fontWeight: 'bold', textAlign: 'center' }}>
+              Controles da Câmera
+            </Typography>
+            
             <Button 
               variant="contained" 
-              onClick={handleClear} 
-              disabled={!isMapLoaded} 
-              fullWidth
+              onClick={resetMap} 
+              disabled={!isMapLoaded}
+              sx={{
+                backgroundColor: '#7CB342',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#689F38',
+                },
+                '&:disabled': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  color: 'rgba(255, 255, 255, 0.26)',
+                },
+                fontSize: '0.875rem',
+                padding: '8px 16px',
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
             >
               Resetar
             </Button>
-            <FormControlLabel
-              control={
-                <Switch 
-                  checked={isSpinning} 
-                  onChange={() => setIsSpinning(!isSpinning)} 
-                  disabled={!isMapLoaded || selectedPlaces.length === 0} 
-                />
-              }
-              label="Rotação" 
-              sx={{ 
-                justifyContent: 'space-between', 
-                ml: 0.5, 
-                color: 'rgba(255, 255, 255, 0.8)' 
-              }}
-            />
+            
             <ToggleButtonGroup 
               orientation="vertical" 
               value={pitch} 
@@ -331,6 +625,18 @@ export default function Map() {
               onChange={handlePitchChange} 
               disabled={!isMapLoaded} 
               fullWidth
+              sx={{
+                '& .MuiToggleButton-root': {
+                  color: 'rgba(255,255,255,0.8)',
+                  borderColor: 'rgba(255,255,255,0.3)',
+                  fontSize: '0.75rem',
+                  padding: '6px 12px',
+                },
+                '& .MuiToggleButton-root.Mui-selected': {
+                  backgroundColor: '#7CB342',
+                  color: 'white',
+                },
+              }}
             >
               <ToggleButton value={0}>Visão 2D</ToggleButton>
               <ToggleButton value={30}>Visão 30°</ToggleButton>
@@ -339,31 +645,60 @@ export default function Map() {
             </ToggleButtonGroup>
           </Box>
 
-          {/* Caixa 2: Controles de Camadas (Lagos) */}
+          {/* Controles de Camadas */}
           <Box
             sx={{
-              backgroundColor: 'rgba(46, 46, 46, 0.9)', 
-              backdropFilter: 'blur(10px)',
-              padding: '4px 12px', 
+              backgroundColor: 'rgba(46, 46, 46, 0.7)', 
+              backdropFilter: 'blur(15px)',
+              padding: 2, 
               borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
             }}
           >
+            <Typography variant="subtitle2" sx={{ color: '#7CB342', fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+              Camadas
+            </Typography>
+            
             <FormControlLabel
               control={
                 <Switch 
                   checked={showWaterLayer} 
                   onChange={() => setShowWaterLayer(!showWaterLayer)} 
-                  disabled={!isMapLoaded} 
+                  disabled={!isMapLoaded}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#7CB342',
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#7CB342',
+                    },
+                  }}
                 />
               }
               label="Marcar Lagos" 
-              sx={{ color: 'rgba(255, 255, 255, 0.8)' }}
+              sx={{ 
+                color: 'rgba(255, 255, 255, 0.9)',
+                ml: 0,
+                '& .MuiFormControlLabel-label': {
+                  fontSize: '0.875rem'
+                }
+              }}
             />
           </Box>
         </Box>
 
       </ThemeProvider>
-      <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+      
+      <div 
+        ref={mapContainer} 
+        style={{ 
+          height: '100%', 
+          width: '100%',
+          position: 'relative',
+          zIndex: 1
+        }} 
+      />
     </div>
   );
 }

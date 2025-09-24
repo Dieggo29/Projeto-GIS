@@ -3,26 +3,12 @@
     {
       "name": "Brasil",
       "id": "BR",
-      "geoJsonPath": "/data/brasil_estados_real.geojson",
-      "states": [
-        {
-          "name": "Paraná",
-          "id": "PR",
-          "geoJsonPath": "/data/brasil_estados_real.geojson",
-          "cities": [
-            {
-              "name": "Curitiba",
-              "id": "CWB",
-              "geoJsonPath": "/data/curitiba.geojson"
-            },
-            {
-              "name": "Meu Polígono Copiado",
-              "id": "MEU_POLIGONO",
-              "geoJsonPath": "/data/meu_poligono.geojson"
-            }
-          ]
-        }
-      ]
+      "geoJsonPath": "/data/meu_poligono.geojson"
+    },
+    {
+      "name": "Curitiba",
+      "id": "CWB",
+      "geoJsonPath": "/data/curitiba_real.geojson"
     }
   ]
 }

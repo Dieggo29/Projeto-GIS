@@ -2,7 +2,6 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
 export default function HomePage() {
@@ -15,80 +14,54 @@ export default function HomePage() {
   return (
     <Box
       sx={{
-        position: 'relative',
-        height: '100vh',
-        width: '100vw',
-        overflow: 'hidden',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7CB342 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #2E2E2E 0%, #1a1a1a 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        padding: { xs: 2, sm: 4 }
       }}
     >
-      {/* Logo Principal */}
+      {/* Conteúdo Principal */}
       <Box
         sx={{
-          zIndex: 1,
           textAlign: 'center',
-          backgroundColor: 'rgba(46, 46, 46, 0.9)',
-          padding: '3rem',
-          borderRadius: '2rem',
-          border: '2px solid #7CB342',
-          boxShadow: '0 8px 32px rgba(124, 179, 66, 0.3)',
-          backdropFilter: 'blur(10px)',
-          maxWidth: '90vw',
+          zIndex: 2,
+          maxWidth: '800px',
+          width: '100%'
         }}
       >
-        {/* Container do Logo */}
+        {/* Logo */}
         <Box
           sx={{
-            mb: 3,
+            position: 'relative',
+            width: { xs: 280, sm: 350, md: 400 },
+            height: { xs: 200, sm: 250, md: 300 },
+            margin: '0 auto 2rem auto',
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
-          <Box
-            sx={{
-              width: { xs: 280, sm: 350, md: 400 },
-              height: { xs: 140, sm: 175, md: 200 },
-              position: 'relative',
-              filter: 'drop-shadow(0 4px 8px rgba(124, 179, 66, 0.4))',
+          <Typography 
+            sx={{ 
+              color: '#7CB342', 
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+              fontWeight: 'bold',
+              textAlign: 'center'
             }}
-            suppressHydrationWarning
           >
-            {isClient && (
-              <Image
-                src="/images/boqueiro-da-pesca-logo.png"
-                alt="Boqueirão da Pesca"
-                fill
-                sizes="(max-width: 768px) 280px, (max-width: 1200px) 350px, 400px"
-                style={{
-                  objectFit: 'contain',
-                }}
-                priority
-                suppressHydrationWarning
-              />
-            )}
-            {!isClient && (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(124, 179, 66, 0.1)',
-                  borderRadius: '1rem',
-                }}
-              >
-                <Typography sx={{ color: '#7CB342', fontSize: '1.2rem' }}>
-                  Boqueirão da Pesca
-                </Typography>
-              </Box>
-            )}
-          </Box>
+            Projeto GIS
+          </Typography>
         </Box>
 
         {/* Texto de Boas-vindas */}
@@ -103,7 +76,7 @@ export default function HomePage() {
             textShadow: '0 2px 4px rgba(0,0,0,0.5)'
           }}
         >
-          Bem-vindo ao Boqueirão da Pesca
+          Bem-vindo ao meu Projeto GIS
         </Typography>
         
         <Typography 
@@ -114,19 +87,37 @@ export default function HomePage() {
             fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }
           }}
         >
-          Seu guia completo para a pesca
+          Sistema de Informações Geográficas
         </Typography>
         
         <Typography 
           sx={{ 
-            color: 'rgba(255, 255, 255, 0.8)',
+            color: 'rgba(255, 255, 255, 0.9)',
             fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
             maxWidth: '600px',
-            margin: '0 auto'
+            margin: '0 auto 1.5rem auto'
           }}
         >
-          Explore informações sobre atividade dos peixes, condições climáticas, 
-          pressão barométrica e muito mais para tornar sua pescaria ainda melhor!
+          Explore informações geográficas, condições climáticas e dados meteorológicos em tempo real!
+        </Typography>
+
+        {/* Créditos do Desenvolvedor */}
+        <Typography 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+            fontStyle: 'italic',
+            maxWidth: '500px',
+            margin: '0 auto',
+            mt: 2,
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(5px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          Desenvolvido por <strong style={{ color: '#7CB342' }}>Diego Franco</strong> como método de estudo em tecnologias GIS e desenvolvimento web.
         </Typography>
       </Box>
 
