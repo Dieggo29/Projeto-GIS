@@ -1,203 +1,89 @@
 # 🌍 Sistema de Informações Geográficas (GIS)
 
-**Explore informações geográficas, condições climáticas e dados meteorológicos em tempo real!**
+Um **Sistema de Informações Geográficas (GIS) interativo** desenvolvido com **Next.js, React e TypeScript**, permitindo a exploração de mapas, visualização de delimitações geográficas e acesso a dados meteorológicos em tempo real. O sistema oferece uma experiência intuitiva e responsiva, ideal para análises geoespaciais.
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Mapbox](https://img.shields.io/badge/Mapbox-000000?style=for-the-badge&logo=mapbox&logoColor=white)](https://www.mapbox.com/)
-[![Material-UI](https://img.shields.io/badge/Material--UI-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://mui.com/)
+---
 
-## 📋 Índice
+## 📌 Funcionalidades
 
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Funcionalidades](#-funcionalidades)
-- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação e Configuração](#-instalação-e-configuração)
-- [Configuração das APIs](#-configuração-das-apis)
-- [Executando o Projeto](#-executando-o-projeto)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Como Usar](#-como-usar)
-- [Scripts Disponíveis](#-scripts-disponíveis)
-- [Troubleshooting](#-troubleshooting)
-- [Deploy](#-deploy)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
+* Visualização de mapas interativos com múltiplas camadas (Mapbox GL JS)
+* Seleção hierárquica de localizações: País → Estado → Cidade
+* Integração com a **OpenWeather API** para dados meteorológicos em tempo real
+* Sidebar colapsável com controles contextuais e feedback visual
+* Performance otimizada para arquivos GeoJSON grandes
+* Proteção de chaves de API usando **Next.js API Routes**
 
-## 🎯 Sobre o Projeto
-
-Este é um sistema GIS (Geographic Information System) moderno e interativo desenvolvido com Next.js que permite visualizar mapas, explorar dados geográficos e obter informações meteorológicas em tempo real. O projeto combina tecnologias de ponta para oferecer uma experiência rica e responsiva.
-
-### 🎥 Demo
-
-![GIS Demo](https://via.placeholder.com/800x400/0066cc/ffffff?text=Sistema+GIS+Demo)
-
-## ✨ Funcionalidades
-
-### 🗺️ **Mapa Interativo**
-- Visualização com múltiplos estilos (satélite, ruas, terreno)
-- Controle de pitch (inclinação) 3D
-- Zoom e navegação fluidos
-- Camada de água configurável
-- Delimitações geográficas com GeoJSON
-
-### 📍 **Seleção de Locais**
-- Hierarquia completa: País → Estado → Cidade
-- Dados GeoJSON para delimitações precisas
-- Centralização automática no local selecionado
-- Busca e filtros inteligentes
-
-### 🌡️ **Dados Meteorológicos**
-- Temperatura atual e sensação térmica
-- Condições climáticas detalhadas
-- Umidade, pressão atmosférica e vento
-- Atualização em tempo real
-- Histórico e previsões
-
-### 🎨 **Interface Moderna**
-- Design responsivo para todos os dispositivos
-- Tema Material-UI customizado
-- Sidebar colapsável e intuitiva
-- Controles avançados de visualização
-- Animações suaves e feedback visual
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-### **Frontend**
-- **[Next.js 14](https://nextjs.org/)** - Framework React com App Router
-- **[React 18](https://reactjs.org/)** - Biblioteca para interfaces de usuário
-- **[TypeScript](https://www.typescriptlang.org/)** - Tipagem estática para JavaScript
-- **[Material-UI (MUI)](https://mui.com/)** - Componentes de interface
+* **Frontend:** Next.js 14 (App Router), React 18, TypeScript
+* **Mapas:** Mapbox GL JS, GeoJSON
+* **UI/UX:** Material-UI (MUI)
+* **APIs:** OpenWeather API
+* **Estado e Arquitetura:** Context API, API Routes para segurança
+* **DevOps:** Variáveis de ambiente para proteção de chaves e configuração escalável
 
-### **Mapas e Geolocalização**
-- **[Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/)** - Mapas interativos
-- **[GeoJSON](https://geojson.org/)** - Formato de dados geográficos
+---
 
-### **APIs Externas**
-- **[OpenWeather API](https://openweathermap.org/api)** - Dados meteorológicos
-- **[Mapbox API](https://docs.mapbox.com/api/)** - Serviços de mapas
+## 🚀 Como Executar o Projeto
 
-### **Desenvolvimento**
-- **[ESLint](https://eslint.org/)** - Linting de código
-- **[Prettier](https://prettier.io/)** - Formatação de código
+1. **Clone o repositório:**
 
-## 📋 Pré-requisitos
+   ```bash
+   git clone https://github.com/Dieggo29/Projeto-GIS.git
+   ```
+2. **Instale as dependências:**
 
-Antes de começar, certifique-se de ter instalado em sua máquina:
+   ```bash
+   cd Projeto-GIS
+   npm install
+   ```
+3. **Configure suas chaves de API:**
 
-### **Obrigatórios:**
-- **Node.js** (versão 18.0 ou superior)
-- **npm** (versão 8.0 ou superior) ou **yarn** (versão 1.22 ou superior)
-- **Git** (para clonar o repositório)
+   * Crie um arquivo `.env.local` na raiz do projeto
+   * Adicione suas chaves:
 
-### **Contas necessárias:**
-- Conta no [Mapbox](https://www.mapbox.com/) (gratuita)
-- Conta no [OpenWeather](https://openweathermap.org/) (gratuita)
+     ```
+     NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
+     OPENWEATHER_API_KEY=your_openweather_key
+     ```
+4. **Inicie o servidor de desenvolvimento:**
 
-### **Verificar instalações:**
-```bash
-# Verificar versão do Node.js
-node --version
+   ```bash
+   npm run dev
+   ```
+5. **Acesse no navegador:**
 
-# Verificar versão do npm
-npm --version
+   ```
+   http://localhost:3000
+   ```
 
-# Verificar versão do Git
-git --version
-```
+---
 
-## 🚀 Instalação e Configuração
+## 💡 Desafios e Soluções
 
-### **Passo 1: Clonar o Repositório**
-```bash
-# Clone o repositório
-git clone https://github.com/Dieggo29/Sistema-de-Informa-es-Geogr-ficas-GIS-.git
+* **Renderização de Mapas Complexos:** Gerenciamento de múltiplas camadas e controles de zoom, pitch e estilo → solucionado com Mapbox GL JS e controles personalizados.
+* **Hierarquia de Dados Geográficos:** Estrutura de dados otimizada para seleção em cascata (País → Estado → Cidade).
+* **Segurança de API Keys:** Proteção de chaves sensíveis usando API Routes do Next.js.
+* **Performance com GeoJSON Grandes:** Implementação de carregamento sob demanda e renderização otimizada.
+* **UX Intuitiva:** Sidebar colapsável, feedback visual e controles contextuais.
 
-# Entre no diretório do projeto
-cd Sistema-de-Informa-es-Geogr-ficas-GIS-
-```
+---
 
-### **Passo 2: Instalar Dependências**
-```bash
-# Usando npm
-npm install
+## 📷 Demonstração
 
-# OU usando yarn
-yarn install
-```
+![Tela do Projeto](./screenshots/mapa.png)
+*Legenda opcional: Visualização do mapa com seleção de cidade e dados meteorológicos em tempo real.*
 
-### **Passo 3: Configurar Variáveis de Ambiente**
-```bash
-# Copie o arquivo de exemplo
-cp .env.example .env.local
+---
 
-# OU no Windows
-copy .env.example .env.local
-```
+## 🔗 Links
 
-## 🔑 Configuração das APIs
+* Projeto no GitHub: [https://github.com/Dieggo29/Projeto-GIS](https://github.com/Dieggo29/Projeto-GIS)
 
-### **1. Mapbox Token**
+---
 
-1. Acesse [Mapbox](https://www.mapbox.com/)
-2. Crie uma conta gratuita
-3. Vá para [Account → Access Tokens](https://account.mapbox.com/access-tokens/)
-4. Copie seu **Default Public Token**
-5. Cole no arquivo `.env.local`:
+## 🏷️ Tecnologias e Skills
 
-```env
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiU0VVX1VTVUFSSU8iLCJhIjoiU0VVX1RPS0VOIn0.SUA_CHAVE_AQUI
-```
-
-### **2. OpenWeather API Key**
-
-1. Acesse [OpenWeather](https://openweathermap.org/)
-2. Crie uma conta gratuita
-3. Vá para [API Keys](https://home.openweathermap.org/api_keys)
-4. Copie sua **API Key**
-5. Cole no arquivo `.env.local`:
-
-```env
-OPENWEATHER_API_KEY=sua_chave_openweather_aqui
-```
-
-### **3. Arquivo .env.local Completo**
-```env
-# URL da aplicação
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Mapbox Access Token
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoiU0VVX1VTVUFSSU8iLCJhIjoiU0VVX1RPS0VOIn0.SUA_CHAVE_AQUI
-
-# OpenWeather API Key
-OPENWEATHER_API_KEY=sua_chave_openweather_aqui
-```
-
-## ▶️ Executando o Projeto
-
-### **Desenvolvimento**
-```bash
-# Iniciar servidor de desenvolvimento
-npm run dev
-
-# OU
-yarn dev
-```
-
-### **Produção**
-```bash
-# Build da aplicação
-npm run build
-
-# Iniciar em modo produção
-npm start
-
-# OU
-yarn build
-yarn start
-```
-
-### **Acessar a Aplicação**
-Abra seu navegador e acesse: [http://localhost:3000](http://localhost:3000)
-
-## 📁 Estrutura do Projeto
+\#NextJS #React #TypeScript #Mapbox #GIS #MaterialUI #DataVisualization #FrontendDevelopment #APIIntegration #WebDevelopment
