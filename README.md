@@ -73,9 +73,9 @@ Um **Sistema de Informações Geográficas (GIS) interativo** desenvolvido com *
 
 ## 📷 Demonstração
 
-![Tela do Projeto](./screenshots/mapa.png)<img width="1353" height="600" alt="Captura de tela 2025-09-25 000201" src="https://github.com/user-attachments/assets/c0d3fe8e-ea85-4fee-a9d2-ca2691bcd448" />
+<img width="1353" height="600" alt="Captura de tela 2025-09-25 000201" src="https://github.com/user-attachments/assets/c0d3fe8e-ea85-4fee-a9d2-ca2691bcd448" />
 
-*Legenda opcional: Visualização do mapa com seleção de cidade e dados meteorológicos em tempo real.*
+*Visualização do mapa com seleção de cidade e dados meteorológicos em tempo real.*
 
 ---
 
