@@ -4,9 +4,7 @@ const nextConfig = {
     unoptimized: true, // Para deploy estático
   },
   trailingSlash: true,
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
+  // Removendo a seção env que estava causando o warning
   // PWA configuration
   async headers() {
     return [
